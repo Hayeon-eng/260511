@@ -306,3 +306,217 @@
   border-radius: 10px;
   padding: 11px 12px;
 }
+
+/* =====================================================
+   BRAND FIT — 페이지 내부 데이터 기반 브랜드 적합도
+   ===================================================== */
+.brand-fit-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.brand-fit-wrap.compact {
+  margin-bottom: 18px;
+}
+.brand-fit-card {
+  background: var(--surface);
+  border: 1px solid rgba(0,199,190,0.22);
+  border-left: 4px solid var(--mint);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  box-shadow: var(--sh-sm);
+}
+.brand-fit-card.muted {
+  border-left-color: var(--text-tertiary);
+  border-color: var(--separator);
+}
+.brand-fit-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.brand-fit-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--mint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+.brand-fit-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.brand-fit-score {
+  min-width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(0,199,190,0.10);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.brand-fit-score::after {
+  content: '%';
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 1px;
+  align-self: end;
+  padding-bottom: 10px;
+}
+.brand-fit-score.empty::after { content: ''; }
+.brand-fit-reason {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.brand-fit-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.brand-fit-list li {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  position: relative;
+  padding-left: 12px;
+}
+.brand-fit-list li::before {
+  content: '•';
+  position: absolute;
+  left: 2px;
+  color: var(--mint);
+}
+.brand-fit-action {
+  background: rgba(0,199,190,0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text);
+  margin-top: 8px;
+}
+.brand-fit-action strong {
+  display: block;
+  font-size: 10px;
+  color: var(--mint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+.brand-fit-note,
+.brand-fit-empty {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+}
+.modal-wide .brand-fit-wrap {
+  margin-bottom: 18px;
+}
+
+/* Brand fit weighted components */
+.brand-fit-target {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.brand-fit-components {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 8px;
+}
+.brand-fit-components span {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.brand-fit-components span.strong {
+  background: rgba(0,122,255,0.10);
+  color: var(--tint);
+}
+.brand-fit-persona-box {
+  background: rgba(0,122,255,0.06);
+  border-left: 3px solid var(--tint);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 10px 0;
+}
+.brand-fit-persona-box strong {
+  display: block;
+  font-size: 10.5px;
+  color: var(--tint);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.brand-fit-persona-box ul {
+  margin: 0;
+  padding-left: 16px;
+}
+.brand-fit-persona-box li {
+  font-size: 11.5px;
+  line-height: 1.45;
+  margin-bottom: 3px;
+}
+.brand-fit-criteria {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--separator);
+}
+.brand-fit-criteria summary {
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  user-select: none;
+}
+.brand-fit-weight-note {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.brand-fit-weight-note strong {
+  color: var(--tint);
+}
+.brand-fit-criteria-block {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.brand-fit-criteria-block strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.brand-fit-criteria-note {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}

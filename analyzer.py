@@ -34,6 +34,50 @@ OG 태그: {og}
 [추가 콘텐츠 - 첨부파일에서 추출]
 {extra_content}
 
+[브랜드 적합도 공식 기준]
+브랜드 적합도는 "페이지 내부 콘텐츠끼리 일관적인가"가 아니라,
+분석 대상 콘텐츠가 Samsung Galaxy 또는 Apple의 공식 브랜드 아이덴티티와 브랜드 페르소나에 얼마나 맞는지를 평가합니다.
+실제 검색량, 구매 의향, 브랜드 선호도, 캠페인 성과는 반영하지 마세요.
+
+점수 가중치:
+- 공식 브랜드 아이덴티티 매칭: 15점
+- 브랜드 페르소나 적합도: 70점  ← 페르소나 가중치를 압도적으로 크게 둡니다
+- 근거 명확성: 15점
+
+Samsung Galaxy 공식 아이덴티티 기준:
+- Openness / Open always wins: 열린 태도, 도전, 다양한 사용자와 상황을 포용하는 메시지
+- 사람 중심 혁신: 기술이 사용자의 실제 문제를 해결하고 삶을 개선하는가
+- 진취적 혁신: AI, 카메라, 생산성, 새로운 폼팩터/연결 경험이 의미 있는 혁신으로 설명되는가
+- Galaxy 생태계 / 연결성: 폰, 워치, 태블릿, PC 등 기기간 연결 경험이 드러나는가
+- 책임 있는 기술 / 지속가능성: 보편적이고 유익하며 지속 가능한 기술 방향과 맞는가
+
+Samsung Galaxy 브랜드 페르소나 기준:
+- Open Explorer: 새로운 가능성, 열린 태도, 자기표현, 연결을 중시하는 사용자
+- Practical Innovator: AI, 카메라, 생산성 기능이 실제 생활 문제를 해결하길 기대하는 사용자
+- Connected Multitasker: 여러 Galaxy 기기를 넘나드는 끊김 없는 경험을 원하는 사용자
+- Creator / Story Sharer: 사진, 영상, AI 편집, 공유로 자신의 관점과 여정을 표현하는 사용자
+- Responsible Tech User: 지속가능성, 신뢰, 장기적 가치를 함께 보는 사용자
+
+Apple 공식 아이덴티티 기준:
+- Privacy-first: 개인정보 보호와 사용자 통제권이 기본값으로 설명되는가
+- Empowering tools: 기술이 사용자를 더 창의적이고 생산적으로 만드는가
+- Accessibility / inclusive design: 누구나 쉽게 쓸 수 있는 접근성, 직관성, 사용 편의성이 드러나는가
+- Environment / durable products: 환경 책임, 오래 쓰는 제품, 재활용/탄소중립 방향과 맞는가
+- Integrated premium experience: 하드웨어·소프트웨어·서비스가 하나의 완성된 경험처럼 설명되는가
+
+Apple 브랜드 페르소나 기준:
+- Privacy-first User: 개인정보 보호, 데이터 통제권, 안전한 AI/개인화 경험을 중시하는 사용자
+- Creative Professional: 창작, 생산성, 콘텐츠 제작, 몰입도 높은 작업 경험을 중시하는 사용자
+- Effortless Premium Seeker: 직관적이고 완성도 높은 프리미엄 경험을 기대하는 사용자
+- Accessibility-minded User: 접근성, 포용성, 사용 편의성을 중요하게 보는 사용자
+- Planet-conscious Buyer: 환경 책임, 오래 쓰는 제품, 재활용 소재, 탄소중립 방향을 고려하는 사용자
+
+[브랜드 적합도 판정 규칙]
+1. URL/제목/본문/브랜드명으로 Samsung Galaxy인지 Apple인지 먼저 추정하세요.
+2. Samsung Galaxy 또는 Apple이 아니면 brand_fit.status="unavailable"로 두고 score=0을 반환하세요.
+3. 브랜드 페르소나 적합도는 70점으로 가장 크게 반영하세요. 콘텐츠가 어떤 페르소나에게 잘 맞고, 어떤 페르소나에는 부족한지 반드시 판단하세요.
+4. 브랜드 적합도 근거는 제공된 콘텐츠에서 확인 가능한 표현/구조/메시지에 근거하세요. 공식 기준 자체는 위의 기준을 사용하되, 콘텐츠에 없는 사실을 근거처럼 만들지 마세요.
+
 다음 JSON으로만 답변하세요. 4개 축(데이터/콘텐츠/AI Commerce/UX)에 맞춰 정렬하세요.
 
 {{
@@ -46,6 +90,26 @@ OG 태그: {og}
   "aeo_score": 0-100,
   "aeo_reason": "점수 근거 한 줄",
   "key_insights": ["핵심 인사이트 3-5개 (축 구분 없이)"],
+  "brand_fit": {{
+    "status": "ok|unavailable",
+    "target_brand": "Samsung Galaxy|Apple|Unknown",
+    "score": 0-100,
+    "score_components": {{
+      "official_identity_match": 0-15,
+      "brand_persona_fit": 0-70,
+      "evidence_clarity": 0-15
+    }},
+    "persona_fit": {{
+      "score": 0-70,
+      "matched_personas": ["잘 맞는 브랜드 페르소나와 이유"],
+      "weak_personas": ["덜 맞는 브랜드 페르소나와 이유"]
+    }},
+    "reason": "브랜드 적합도 점수 근거 한 줄",
+    "findings": ["공식 브랜드 아이덴티티/브랜드 페르소나와 맞는 근거"],
+    "gaps": ["공식 브랜드 아이덴티티/브랜드 페르소나 관점에서 부족한 요소"],
+    "actions": ["브랜드 적합도 개선을 위한 구체 액션 2-3개"],
+    "note": "공식 브랜드 아이덴티티와 브랜드 페르소나 기준. 실제 검색량·구매 의향·브랜드 선호도는 미포함"
+  }},
   "by_dimension": {{
     "데이터": {{
       "score": 0-100,
@@ -122,7 +186,7 @@ def analyze_content(crawl_result: Dict[str, Any],
         if extra_images:
             text = llm.generate_with_images(
                 prompt + "\n\n첨부된 이미지도 함께 분석하여 visual_suggestions에 반영하세요.",
-                extra_images, temperature=0.3, max_tokens=2500,
+                extra_images, temperature=0.3, max_tokens=3800,
             )
             try:
                 start = text.find("{")
@@ -131,7 +195,7 @@ def analyze_content(crawl_result: Dict[str, Any],
             except Exception:
                 parsed = {}
         else:
-            parsed = llm.generate_json(prompt, temperature=0.3, max_tokens=2500)
+            parsed = llm.generate_json(prompt, temperature=0.3, max_tokens=3800)
 
         if not parsed:
             return _empty("LLM 응답 파싱 실패")
@@ -152,6 +216,32 @@ def _normalize(parsed: Dict[str, Any], aeo_checks: Dict[str, Any]) -> Dict[str, 
     parsed.setdefault("aeo_score", 0)
     parsed.setdefault("aeo_reason", "")
     parsed.setdefault("key_insights", [])
+    parsed.setdefault("brand_fit", {})
+    if not isinstance(parsed["brand_fit"], dict):
+        parsed["brand_fit"] = {}
+    parsed["brand_fit"].setdefault("status", "ok")
+    parsed["brand_fit"].setdefault("target_brand", "Unknown")
+    parsed["brand_fit"].setdefault("score", 0)
+    parsed["brand_fit"].setdefault("score_components", {})
+    if not isinstance(parsed["brand_fit"].get("score_components"), dict):
+        parsed["brand_fit"]["score_components"] = {}
+    parsed["brand_fit"]["score_components"].setdefault("official_identity_match", 0)
+    parsed["brand_fit"]["score_components"].setdefault("brand_persona_fit", 0)
+    parsed["brand_fit"]["score_components"].setdefault("evidence_clarity", 0)
+    parsed["brand_fit"].setdefault("persona_fit", {})
+    if not isinstance(parsed["brand_fit"].get("persona_fit"), dict):
+        parsed["brand_fit"]["persona_fit"] = {}
+    parsed["brand_fit"]["persona_fit"].setdefault("score", parsed["brand_fit"]["score_components"].get("brand_persona_fit", 0))
+    parsed["brand_fit"]["persona_fit"].setdefault("matched_personas", [])
+    parsed["brand_fit"]["persona_fit"].setdefault("weak_personas", [])
+    parsed["brand_fit"].setdefault("reason", "")
+    parsed["brand_fit"].setdefault("findings", [])
+    parsed["brand_fit"].setdefault("gaps", [])
+    parsed["brand_fit"].setdefault("actions", [])
+    parsed["brand_fit"].setdefault(
+        "note",
+        "공식 브랜드 아이덴티티와 브랜드 페르소나 기준. 실제 검색량·구매 의향·브랜드 선호도는 미포함"
+    )
     parsed.setdefault("schema_gaps", [])
     parsed.setdefault("copy_suggestions", [])
     parsed.setdefault("visual_suggestions", [])
@@ -183,7 +273,28 @@ def _empty(reason: str = "") -> Dict[str, Any]:
         "summary": "", "topic": "", "brands": [], "target_audience": "",
         "consumer_perception": "", "likely_questions": [],
         "aeo_score": 0, "aeo_reason": reason,
-        "key_insights": [], "schema_gaps": [], "copy_suggestions": [], "visual_suggestions": [],
+        "key_insights": [],
+        "brand_fit": {
+            "status": "unavailable",
+            "target_brand": "Unknown",
+            "score": 0,
+            "score_components": {
+                "official_identity_match": 0,
+                "brand_persona_fit": 0,
+                "evidence_clarity": 0,
+            },
+            "persona_fit": {
+                "score": 0,
+                "matched_personas": [],
+                "weak_personas": [],
+            },
+            "reason": reason or "브랜드 적합도 분석을 생성하지 못했습니다.",
+            "findings": [],
+            "gaps": [],
+            "actions": [],
+            "note": "공식 브랜드 아이덴티티와 브랜드 페르소나 기준. 실제 검색량·구매 의향·브랜드 선호도는 미포함",
+        },
+        "schema_gaps": [], "copy_suggestions": [], "visual_suggestions": [],
         "by_dimension": {
             "데이터": {"score": 0, "findings": [], "gaps": [], "actions": []},
             "콘텐츠": {"score": 0, "findings": [], "gaps": [], "actions": []},
