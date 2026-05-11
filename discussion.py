@@ -1,5 +1,5 @@
 """
-라이브 다이제스트 + 임원 요약 생성기 (4축 정렬).
+라이브 다이제스트 + 임원 요약 생성기 (5개 축 정렬).
 """
 
 import json
@@ -10,7 +10,7 @@ from gemini_llm import GeminiLLM
 
 log = logging.getLogger(__name__)
 
-DIGEST_PROMPT = """당신은 컨설팅 회의록 작성 전문가입니다. AEO 토론을 4축(데이터/콘텐츠/AI Commerce/UX)으로 정리하세요.
+DIGEST_PROMPT = """당신은 컨설팅 회의록 작성 전문가입니다. AEO 토론을 5개 축(데이터/콘텐츠/AI Commerce/UX/브랜드 메시지 적합도)으로 정리하세요.
 
 [토론 주제]
 {query}
@@ -18,7 +18,7 @@ DIGEST_PROMPT = """당신은 컨설팅 회의록 작성 전문가입니다. AEO 
 [모든 발언 — 페르소나/축/입장과 함께]
 {turns}
 
-다음 JSON으로만 답변하세요. 4축 모두에 대해 정리하되, 발언이 없는 축은 빈 배열로 두세요.
+다음 JSON으로만 답변하세요. 5개 축 모두에 대해 정리하되, 발언이 없는 축은 빈 배열로 두세요.
 
 {{
   "headline": "토론 전체를 한 줄로 (40자 이내)",
@@ -30,7 +30,8 @@ DIGEST_PROMPT = """당신은 컨설팅 회의록 작성 전문가입니다. AEO 
     }},
     "콘텐츠": {{ "consensus": [], "conflicts": [], "actions": [] }},
     "AI Commerce": {{ "consensus": [], "conflicts": [], "actions": [] }},
-    "UX": {{ "consensus": [], "conflicts": [], "actions": [] }}
+    "UX": { "consensus": [], "conflicts": [], "actions": [] },
+    "브랜드 메시지 적합도": { "consensus": [], "conflicts": [], "actions": [] }
   }},
   "top_insights": ["축을 가로지르는 통합 인사이트 (최대 3개)"],
   "next_questions": ["다음 라운드에서 다뤘으면 하는 질문 (최대 3개)"]
@@ -65,12 +66,12 @@ EXEC_PROMPT = """당신은 C-Level 임원진에게 보고하는 컨설팅 파트
 {{
   "verdict": "최종 결론 한 줄 (60자 이내). '~다.'로 끝나는 단언형. 미사여구 금지.",
   "key_gaps": [
-    {{"title": "핵심 격차/이슈 한 줄", "axis": "데이터|콘텐츠|AI Commerce|UX", "evidence": "근거 한 줄"}}
+    {{"title": "핵심 격차/이슈 한 줄", "axis": "데이터|콘텐츠|AI Commerce|UX|브랜드 메시지 적합도", "evidence": "근거 한 줄"}}
   ],
   "actions": [
     {{
       "title": "액션 한 줄 (구체적)",
-      "axis": "데이터|콘텐츠|AI Commerce|UX",
+      "axis": "데이터|콘텐츠|AI Commerce|UX|브랜드 메시지 적합도",
       "impact": 1-5,
       "effort": 1-5,
       "timeline": "2주 | 1개월 | 분기 중 하나",
@@ -146,17 +147,17 @@ def generate_executive_summary(session: Dict[str, Any]) -> Dict[str, Any]:
             b_label = (session.get("side_b") or {}).get("label") or session.get("label_b") or "B"
             analysis_str = (
                 f"[{a_label}] AEO {a.get('aeo_score',0)}/100 — {a.get('summary','')}\n"
-                f"  - 축별 점수: " + ", ".join([f"{k}:{(a.get('by_dimension',{}).get(k,{}) or {}).get('score',0)}" for k in ["데이터","콘텐츠","AI Commerce","UX"]]) + "\n"
+                f"  - 축별 점수: " + ", ".join([f"{k}:{(a.get('by_dimension',{}).get(k,{}) or {}).get('score',0)}" for k in ["데이터","콘텐츠","AI Commerce","UX","브랜드 메시지 적합도"]]) + "\n"
                 f"  - 부족 스키마: {a.get('schema_gaps',[])}\n\n"
                 f"[{b_label}] AEO {b.get('aeo_score',0)}/100 — {b.get('summary','')}\n"
-                f"  - 축별 점수: " + ", ".join([f"{k}:{(b.get('by_dimension',{}).get(k,{}) or {}).get('score',0)}" for k in ["데이터","콘텐츠","AI Commerce","UX"]]) + "\n"
+                f"  - 축별 점수: " + ", ".join([f"{k}:{(b.get('by_dimension',{}).get(k,{}) or {}).get('score',0)}" for k in ["데이터","콘텐츠","AI Commerce","UX","브랜드 메시지 적합도"]]) + "\n"
                 f"  - 부족 스키마: {b.get('schema_gaps',[])}"
             )
         else:
             a = session.get("analysis", {}) or {}
             analysis_str = (
                 f"AEO {a.get('aeo_score',0)}/100 — {a.get('summary','')}\n"
-                f"  - 축별 점수: " + ", ".join([f"{k}:{(a.get('by_dimension',{}).get(k,{}) or {}).get('score',0)}" for k in ["데이터","콘텐츠","AI Commerce","UX"]]) + "\n"
+                f"  - 축별 점수: " + ", ".join([f"{k}:{(a.get('by_dimension',{}).get(k,{}) or {}).get('score',0)}" for k in ["데이터","콘텐츠","AI Commerce","UX","브랜드 메시지 적합도"]]) + "\n"
                 f"  - 핵심 인사이트: {a.get('key_insights',[])}\n"
                 f"  - 부족 스키마: {a.get('schema_gaps',[])}"
             )
@@ -260,7 +261,7 @@ def _normalize(d: Dict[str, Any]) -> Dict[str, Any]:
     d.setdefault("top_insights", [])
     d.setdefault("next_questions", [])
     d.setdefault("by_dimension", {})
-    for ax in ["데이터", "콘텐츠", "AI Commerce", "UX"]:
+    for ax in ["데이터", "콘텐츠", "AI Commerce", "UX", "브랜드 메시지 적합도"]:
         item = d["by_dimension"].get(ax, {})
         if not isinstance(item, dict):
             item = {}
@@ -281,5 +282,6 @@ def _empty() -> Dict[str, Any]:
             "콘텐츠": {"consensus": [], "conflicts": [], "actions": []},
             "AI Commerce": {"consensus": [], "conflicts": [], "actions": []},
             "UX": {"consensus": [], "conflicts": [], "actions": []},
+            "브랜드 메시지 적합도": {"consensus": [], "conflicts": [], "actions": []},
         },
     }

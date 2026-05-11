@@ -1,6 +1,6 @@
 """
-AEO 콘텐츠 분석기 (4축 정렬).
-크롤링 결과 + 첨부파일 텍스트/이미지를 받아 Gemini로 4축 진단을 수행.
+AEO 콘텐츠 분석기 (5개 축 정렬).
+크롤링 결과 + 첨부파일 텍스트/이미지를 받아 Gemini로 5개 축 진단을 수행.
 """
 
 import json
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 ANALYZE_PROMPT = """당신은 AEO(Answer Engine Optimization) + AI Commerce 진단 전문가입니다.
-LLM·AI 검색엔진(ChatGPT, Perplexity, Gemini, Google AI Overview)·AI Shopping(Google Shopping, ChatGPT Shopping)이
+AI Agent가
 이 콘텐츠를 얼마나 잘 인용·추천할지를 진단합니다.
 
 [크롤링된 콘텐츠]
@@ -78,7 +78,7 @@ Apple 브랜드 페르소나 기준:
 3. 브랜드 페르소나 적합도는 70점으로 가장 크게 반영하세요. 콘텐츠가 어떤 페르소나에게 잘 맞고, 어떤 페르소나에는 부족한지 반드시 판단하세요.
 4. 브랜드 적합도 근거는 제공된 콘텐츠에서 확인 가능한 표현/구조/메시지에 근거하세요. 공식 기준 자체는 위의 기준을 사용하되, 콘텐츠에 없는 사실을 근거처럼 만들지 마세요.
 
-다음 JSON으로만 답변하세요. 4개 축(데이터/콘텐츠/AI Commerce/UX)에 맞춰 정렬하세요.
+다음 JSON으로만 답변하세요. 5개 축(데이터/콘텐츠/AI Commerce/UX/브랜드 메시지 적합도)에 맞춰 정렬하세요. 브랜드 메시지 적합도는 다른 4개 축과 동일 레벨의 진단 축입니다.
 
 {{
   "summary": "콘텐츠 한 줄 요약 (60자 이내)",
@@ -129,12 +129,18 @@ Apple 브랜드 페르소나 기준:
       "gaps": ["부족한 점 (Product/Offer/Review 스키마 등)"],
       "actions": ["구체 액션 2-3개"]
     }},
-    "UX": {{
+    "UX": {
       "score": 0-100,
       "findings": ["정보 구조·가독성 측면"],
       "gaps": ["부족한 점"],
       "actions": ["구체 액션 2-3개"]
-    }}
+    },
+    "브랜드 메시지 적합도": {
+      "score": 0-100,
+      "findings": ["Samsung Galaxy/Apple 공식 브랜드 아이덴티티·브랜드 페르소나와 맞는 근거"],
+      "gaps": ["브랜드 페르소나 관점에서 부족한 점"],
+      "actions": ["브랜드 메시지 적합도 개선 액션 2-3개"]
+    }
   }},
   "schema_gaps": ["전반적으로 부족한 스키마 종류"],
   "copy_suggestions": ["카피 개선안 2-3개"],
@@ -248,7 +254,7 @@ def _normalize(parsed: Dict[str, Any], aeo_checks: Dict[str, Any]) -> Dict[str, 
     parsed.setdefault("by_dimension", {})
 
     empty_dim = {"score": 0, "findings": [], "gaps": [], "actions": []}
-    for ax in ["데이터", "콘텐츠", "AI Commerce", "UX"]:
+    for ax in ["데이터", "콘텐츠", "AI Commerce", "UX", "브랜드 메시지 적합도"]:
         d = parsed["by_dimension"].get(ax, {})
         if not isinstance(d, dict):
             d = empty_dim.copy()
@@ -263,6 +269,15 @@ def _normalize(parsed: Dict[str, Any], aeo_checks: Dict[str, Any]) -> Dict[str, 
         parsed["schema_gaps"] = list(existing_gaps)
     if not aeo_checks.get("has_faq_schema") and "FAQPage" not in parsed["schema_gaps"]:
         parsed["schema_gaps"].append("FAQPage")
+
+    brand_axis = parsed["by_dimension"].get("브랜드 메시지 적합도", {})
+    fit = parsed.get("brand_fit", {})
+    if isinstance(fit, dict):
+        brand_axis["score"] = int(fit.get("score") or brand_axis.get("score") or 0)
+        brand_axis["findings"] = fit.get("findings") or brand_axis.get("findings") or []
+        brand_axis["gaps"] = fit.get("gaps") or brand_axis.get("gaps") or []
+        brand_axis["actions"] = fit.get("actions") or brand_axis.get("actions") or []
+        parsed["by_dimension"]["브랜드 메시지 적합도"] = brand_axis
 
     parsed["technical_checks"] = aeo_checks
     return parsed
@@ -300,6 +315,7 @@ def _empty(reason: str = "") -> Dict[str, Any]:
             "콘텐츠": {"score": 0, "findings": [], "gaps": [], "actions": []},
             "AI Commerce": {"score": 0, "findings": [], "gaps": [], "actions": []},
             "UX": {"score": 0, "findings": [], "gaps": [], "actions": []},
+            "브랜드 메시지 적합도": {"score": 0, "findings": [], "gaps": [], "actions": []},
         },
         "technical_checks": {},
     }

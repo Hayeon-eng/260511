@@ -153,7 +153,7 @@
   color: var(--text);
 }
 
-/* 4축 막대 (비교) */
+/* 5개 축 막대 (비교) */
 .diag-axis-bars {
   display: flex; flex-direction: column;
   gap: 8px;
@@ -237,7 +237,7 @@
 .axis-bg-AI-Commerce { background: rgba(48,209,88,0.06); }
 .axis-bg-UX { background: rgba(255,149,0,0.06); }
 
-/* 단일 모드 4축 그리드 */
+/* 단일 모드 5개 축 그리드 */
 .diag-axis-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -327,3 +327,7 @@
   margin-bottom: 4px;
 }
 
+
+.axis-브랜드-메시지-적합도 { background: rgba(191,90,242,0.14); color: var(--purple); }
+.axis-bg-브랜드-메시지-적합도 { background: rgba(191,90,242,0.06); }
+.axis-fill-브랜드-메시지-적합도 { background: linear-gradient(90deg, rgba(191,90,242,0.45), var(--purple)); }

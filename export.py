@@ -11,7 +11,7 @@ from datetime import datetime
 log = logging.getLogger(__name__)
 
 
-AXES = ["데이터", "콘텐츠", "AI Commerce", "UX"]
+AXES = ["데이터", "콘텐츠", "AI Commerce", "UX", "브랜드 메시지 적합도"]
 
 
 # ============== Excel (xlsx) ==============
@@ -352,7 +352,7 @@ def generate_pptx(session: Dict[str, Any]) -> bytes:
                     size=22, bold=True, color=score_color(analysis.get('aeo_score', 0)))
         add_textbox(slide, 0.6, 2.1, 12, 1.0, analysis.get("summary", ""), size=14, color=GRAY_DARK)
 
-        # 축별 카드 4개
+        # 축별 카드 5개
         for ax_i, ax in enumerate(AXES):
             x = 0.6 + (ax_i % 2) * 6.3
             y = 3.3 + (ax_i // 2) * 2.0
@@ -422,7 +422,7 @@ def generate_pptx(session: Dict[str, Any]) -> bytes:
             add_textbox(slide, 0.85, 1.35, 11.7, 0.5,
                         f"\u201c{digest['headline']}\u201d", size=15, bold=True, color=NAVY)
 
-        # 4개 축 2x2
+        # 5개 축
         for ax_i, ax in enumerate(AXES):
             x = 0.6 + (ax_i % 2) * 6.3
             y = 2.2 + (ax_i // 2) * 2.55

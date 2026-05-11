@@ -221,3 +221,7 @@ details[open] .evidence-summary::before {
   color: var(--text);
   word-break: break-word;
 }
+
+.axis-브랜드-메시지-적합도 { background: rgba(191,90,242,0.14); color: var(--purple); }
+.axis-bg-브랜드-메시지-적합도 { background: rgba(191,90,242,0.06); }
+.axis-fill-브랜드-메시지-적합도 { background: linear-gradient(90deg, rgba(191,90,242,0.45), var(--purple)); }

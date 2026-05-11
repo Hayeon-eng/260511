@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 DB_PATH = os.getenv("DB_PATH", "discussion.db")
 
 # 분석 표준 축
-DIMENSIONS = ["데이터", "콘텐츠", "커머스", "기술", "UX", "브랜드"]
+DIMENSIONS = ["데이터", "콘텐츠", "AI Commerce", "UX", "브랜드 메시지 적합도"]
 
 
 def _conn():
