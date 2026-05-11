@@ -55,6 +55,11 @@ def init_db():
             analysis_json TEXT DEFAULT '',
             personas_json TEXT DEFAULT '[]',
             max_rounds INTEGER DEFAULT 3,
+            mode TEXT DEFAULT 'single',
+            side_a_json TEXT DEFAULT '',
+            side_b_json TEXT DEFAULT '',
+            label_a TEXT DEFAULT '',
+            label_b TEXT DEFAULT '',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -98,10 +103,18 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_digests_session ON digests(session_id, id);
         """)
         # 안전 마이그레이션 (기존 DB에 컬럼이 없을 때만 추가)
-        try:
-            c.execute("ALTER TABLE sessions ADD COLUMN max_rounds INTEGER DEFAULT 3")
-        except sqlite3.OperationalError:
-            pass
+        for col, ddl in [
+            ("max_rounds", "INTEGER DEFAULT 3"),
+            ("mode", "TEXT DEFAULT 'single'"),
+            ("side_a_json", "TEXT DEFAULT ''"),
+            ("side_b_json", "TEXT DEFAULT ''"),
+            ("label_a", "TEXT DEFAULT ''"),
+            ("label_b", "TEXT DEFAULT ''"),
+        ]:
+            try:
+                c.execute(f"ALTER TABLE sessions ADD COLUMN {col} {ddl}")
+            except sqlite3.OperationalError:
+                pass
 
 
 # ============= PERSONAS =============
@@ -181,16 +194,40 @@ def delete_persona(pid: str) -> bool:
 
 # ============= SESSIONS =============
 def create_session(query: str, url: str, personas_json: List[Dict[str, Any]],
-                   title: str = "", max_rounds: int = 3) -> str:
+                   title: str = "", max_rounds: int = 3,
+                   mode: str = "single",
+                   label_a: str = "", label_b: str = "") -> str:
     sid = str(uuid.uuid4())
     now = datetime.now().isoformat()
     with _conn() as c:
         c.execute("""
-            INSERT INTO sessions (id, title, query, url, personas_json, max_rounds, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO sessions (id, title, query, url, personas_json, max_rounds,
+                                  mode, label_a, label_b, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (sid, title or query[:50], query, url,
-              json.dumps(personas_json, ensure_ascii=False), max_rounds, now, now))
+              json.dumps(personas_json, ensure_ascii=False), max_rounds,
+              mode, label_a, label_b, now, now))
     return sid
+
+
+def update_session_sides(sid: str,
+                         side_a: Dict[str, Any] = None,
+                         side_b: Dict[str, Any] = None):
+    """비교 모드의 좌/우 분석 결과 저장."""
+    fields, params = [], []
+    if side_a is not None:
+        fields.append("side_a_json = ?")
+        params.append(json.dumps(side_a, ensure_ascii=False, default=str))
+    if side_b is not None:
+        fields.append("side_b_json = ?")
+        params.append(json.dumps(side_b, ensure_ascii=False, default=str))
+    if not fields:
+        return
+    fields.append("updated_at = ?")
+    params.append(datetime.now().isoformat())
+    params.append(sid)
+    with _conn() as c:
+        c.execute(f"UPDATE sessions SET {', '.join(fields)} WHERE id = ?", params)
 
 
 def update_session_analysis(sid: str, crawl: Dict[str, Any], analysis: Dict[str, Any]):
@@ -215,6 +252,8 @@ def get_session(sid: str) -> Optional[Dict[str, Any]]:
         d["personas"] = json.loads(d.get("personas_json") or "[]")
         d["crawl"] = json.loads(d.get("crawl_json") or "{}") if d.get("crawl_json") else {}
         d["analysis"] = json.loads(d.get("analysis_json") or "{}") if d.get("analysis_json") else {}
+        d["side_a"] = json.loads(d.get("side_a_json") or "{}") if d.get("side_a_json") else {}
+        d["side_b"] = json.loads(d.get("side_b_json") or "{}") if d.get("side_b_json") else {}
         return d
 
 

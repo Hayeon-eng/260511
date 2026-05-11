@@ -23,6 +23,12 @@ try:
 except Exception:
     HAS_EXTRUCT = False
 
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    HAS_YT_TRANSCRIPT = True
+except Exception:
+    HAS_YT_TRANSCRIPT = False
+
 log = logging.getLogger(__name__)
 
 HEADERS = {
@@ -89,13 +95,14 @@ def crawl_url(url: str, timeout: int = 10) -> Dict[str, Any]:
         # --- 6. 구조화 데이터 (JSON-LD / Microdata / RDFa) ---
         schemas = _extract_schemas(html, base_url)
 
-        # --- 7. YouTube 자막 (옵션) ---
+        # --- 7. YouTube 자막 + 메타데이터 ---
         is_youtube = "youtube.com" in url or "youtu.be" in url
         yt_text = ""
         if is_youtube:
             yt_text = _try_youtube_transcript(url)
             if yt_text:
-                body_text = yt_text[:5000]
+                # 자막을 본문 앞에 붙임 (자막이 가장 중요한 신호)
+                body_text = ("[자막]\n" + yt_text + "\n\n[페이지 텍스트]\n" + body_text)[:6000]
 
         # --- 8. AEO 친화 점검 ---
         aeo_checks = {
@@ -197,13 +204,42 @@ def _extract_schemas(html: str, base_url: str) -> List[Dict[str, Any]]:
 
 
 def _try_youtube_transcript(url: str) -> str:
-    """YouTube 자막을 시도. 실패해도 빈 문자열만 반환."""
+    """YouTube 자막을 시도. 실패하면 빈 문자열."""
+    if not HAS_YT_TRANSCRIPT:
+        return ""
     try:
-        m = re.search(r"(?:v=|youtu\.be/)([^&?/]+)", url)
+        m = re.search(r"(?:v=|youtu\.be/|shorts/|embed/)([A-Za-z0-9_\-]{11})", url)
         if not m:
             return ""
-        # 무료/공개 자막 엔드포인트는 더 이상 안정적이지 않음.
-        # 추후 youtube-transcript-api 추가 시 여기서 사용.
+        video_id = m.group(1)
+        # 우선순위: 한국어 → 영어 → 자동 생성 → 첫 번째 가능한 것
+        try:
+            transcripts = YouTubeTranscriptApi.list_transcripts(video_id)
+            transcript = None
+            for langs in (["ko"], ["en"], ["ko-KR"], ["en-US"]):
+                try:
+                    transcript = transcripts.find_transcript(langs)
+                    break
+                except Exception:
+                    continue
+            if not transcript:
+                for t in transcripts:
+                    transcript = t
+                    break
+            if transcript:
+                items = transcript.fetch()
+                text = " ".join([it.get("text", "") for it in items if it.get("text")])
+                text = re.sub(r"\s+", " ", text).strip()
+                return text[:6000]
+        except Exception as e:
+            log.warning(f"YouTube transcript list 실패: {e}")
+            try:
+                items = YouTubeTranscriptApi.get_transcript(video_id, languages=["ko", "en"])
+                text = " ".join([it.get("text", "") for it in items])
+                return re.sub(r"\s+", " ", text).strip()[:6000]
+            except Exception as e2:
+                log.warning(f"YouTube transcript fallback 실패: {e2}")
         return ""
-    except Exception:
+    except Exception as e:
+        log.warning(f"YouTube transcript 전체 실패: {e}")
         return ""

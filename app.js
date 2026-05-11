@@ -183,6 +183,7 @@ function renderSession() {
   const s = State.currentSession;
   if (!s) return;
   const analysis = s.analysis || {};
+  const isCompare = s.mode === 'compare';
   const score = analysis.aeo_score || 0;
   const scoreClass = score < 40 ? 'score-low' : (score < 70 ? 'score-mid' : 'score-high');
 
@@ -194,11 +195,47 @@ function renderSession() {
 
   const turnsHtml = (s.turns || []).map(renderTurnCard).join('');
 
+  // A/B 비교 모드 헤더
+  let scoresHTML;
+  if (isCompare) {
+    const a = s.side_a || {};
+    const b = s.side_b || {};
+    const aLabel = a.label || s.label_a || 'A';
+    const bLabel = b.label || s.label_b || 'B';
+    const aAn = a.analysis || {};
+    const bAn = b.analysis || {};
+    const aScore = aAn.aeo_score || 0;
+    const bScore = bAn.aeo_score || 0;
+    const aCls = aScore < 40 ? 'score-low' : (aScore < 70 ? 'score-mid' : 'score-high');
+    const bCls = bScore < 40 ? 'score-low' : (bScore < 70 ? 'score-mid' : 'score-high');
+    scoresHTML = `
+      <div class="vs-row">
+        <div class="vs-card">
+          <div class="vs-label">${escapeHTML(aLabel)}</div>
+          ${a.url ? `<div class="vs-url">${escapeHTML(a.url)}</div>` : ''}
+          <div class="aeo-pill ${aCls}">AEO <span class="score">${aScore}</span><span>/100</span></div>
+          <div class="vs-mini-summary">${escapeHTML(aAn.summary || '')}</div>
+        </div>
+        <div class="vs-mid">VS</div>
+        <div class="vs-card">
+          <div class="vs-label">${escapeHTML(bLabel)}</div>
+          ${b.url ? `<div class="vs-url">${escapeHTML(b.url)}</div>` : ''}
+          <div class="aeo-pill ${bCls}">AEO <span class="score">${bScore}</span><span>/100</span></div>
+          <div class="vs-mini-summary">${escapeHTML(bAn.summary || '')}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    scoresHTML = `
+      <div class="aeo-pill ${scoreClass}">AEO <span class="score">${score}</span><span>/100</span></div>
+    `;
+  }
+
   document.getElementById('main_inner').innerHTML = `
     <div class="session-header">
       <div class="topic">${escapeHTML(s.query)}</div>
-      ${s.url ? `<div class="url">🔗 <a href="${escapeHTML(s.url)}" target="_blank" rel="noopener">${escapeHTML(s.url)}</a></div>` : ''}
-      ${analysis.summary ? `<div style="color:var(--text-secondary); font-size:14px; margin-top:8px">${escapeHTML(analysis.summary)}</div>` : ''}
+      ${s.url && !isCompare ? `<div class="url">🔗 <a href="${escapeHTML(s.url)}" target="_blank" rel="noopener">${escapeHTML(s.url)}</a></div>` : ''}
+      ${analysis.summary && !isCompare ? `<div style="color:var(--text-secondary); font-size:14px; margin-top:8px">${escapeHTML(analysis.summary)}</div>` : ''}
       <div class="persona-chips">
         ${personas.map(p => `
           <div class="persona-chip">
@@ -207,8 +244,8 @@ function renderSession() {
           </div>
         `).join('')}
       </div>
+      ${scoresHTML}
       <div class="session-meta-row">
-        <div class="aeo-pill ${scoreClass}">AEO <span class="score">${score}</span><span>/100</span></div>
         <div class="aeo-pill" style="background:rgba(88,86,214,0.10); color:var(--indigo)">
           라운드 <span class="score" id="round_num">${Math.min(currentRound, maxRounds)}</span><span>/${maxRounds === 999 ? '∞' : maxRounds}</span>
         </div>
@@ -216,7 +253,14 @@ function renderSession() {
           <button class="ctrl-btn primary" id="btn_play" onclick="toggleAutoRun()">▶ 자동 진행</button>
           <button class="ctrl-btn" onclick="manualNextTurn()">+1 발언</button>
           <button class="ctrl-btn" onclick="refreshDigest()">요약 갱신</button>
-          <button class="ctrl-btn" onclick="exportSession()">⬇ MD</button>
+          <div class="ctrl-menu">
+            <button class="ctrl-btn" onclick="toggleExportMenu(event)">⬇ 내보내기 ▾</button>
+            <div class="ctrl-menu-dropdown" id="export_menu">
+              <div class="dd-item" onclick="exportSession('md')">📝 마크다운 (.md)</div>
+              <div class="dd-item" onclick="exportSession('xlsx')">📊 엑셀 (.xlsx)</div>
+              <div class="dd-item" onclick="exportSession('pptx')">🎯 파워포인트 (.pptx)</div>
+            </div>
+          </div>
           <button class="ctrl-btn danger" onclick="deleteSession('${s.id}', true)">삭제</button>
         </div>
       </div>
@@ -281,26 +325,59 @@ function cssAxis(ax) { return ax.replace(/ /g, '-'); }
 function renderRightPanel() {
   const s = State.currentSession;
   if (!s) return;
+  const isCompare = s.mode === 'compare';
   const analysis = s.analysis || {};
   const digest = (s.digest && s.digest.digest) || null;
-  const byDim = analysis.by_dimension || {};
 
-  const scoreHtml = `
-    <div class="rp-section">
-      <div class="rp-title">축별 진단 점수</div>
-      <div class="rp-score-grid">
-        ${AXES.map(ax => {
-          const d = byDim[ax] || {};
-          const sc = d.score || 0;
-          const color = sc < 40 ? 'var(--red)' : (sc < 70 ? 'var(--orange)' : 'var(--green)');
-          return `<div class="rp-score-cell">
-            <div class="rp-score-axis">${AXIS_EMOJI[ax]} ${escapeHTML(ax)}</div>
-            <div class="rp-score-num" style="color:${color}">${sc}</div>
-          </div>`;
-        }).join('')}
+  let scoreHtml;
+  if (isCompare) {
+    const a = s.side_a || {};
+    const b = s.side_b || {};
+    const aAn = a.analysis || {};
+    const bAn = b.analysis || {};
+    const aLabel = a.label || s.label_a || 'A';
+    const bLabel = b.label || s.label_b || 'B';
+    scoreHtml = `
+      <div class="rp-section">
+        <div class="rp-title">축별 비교 점수</div>
+        <div class="rp-compare-grid">
+          <div class="rp-compare-head">${escapeHTML(aLabel)}</div>
+          <div class="rp-compare-head" style="text-align:center; color:var(--text-tertiary)">vs</div>
+          <div class="rp-compare-head">${escapeHTML(bLabel)}</div>
+          ${AXES.map(ax => {
+            const a_d = (aAn.by_dimension || {})[ax] || {};
+            const b_d = (bAn.by_dimension || {})[ax] || {};
+            const aS = a_d.score || 0, bS = b_d.score || 0;
+            const aClr = aS < 40 ? 'var(--red)' : (aS < 70 ? 'var(--orange)' : 'var(--green)');
+            const bClr = bS < 40 ? 'var(--red)' : (bS < 70 ? 'var(--orange)' : 'var(--green)');
+            return `
+              <div class="rp-compare-cell"><span class="rp-compare-num" style="color:${aClr}">${aS}</span></div>
+              <div class="rp-compare-cell" style="font-size:12px; color:var(--text-secondary)">${AXIS_EMOJI[ax]} ${escapeHTML(ax)}</div>
+              <div class="rp-compare-cell"><span class="rp-compare-num" style="color:${bClr}">${bS}</span></div>
+            `;
+          }).join('')}
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  } else {
+    const byDim = analysis.by_dimension || {};
+    scoreHtml = `
+      <div class="rp-section">
+        <div class="rp-title">축별 진단 점수</div>
+        <div class="rp-score-grid">
+          ${AXES.map(ax => {
+            const d = byDim[ax] || {};
+            const sc = d.score || 0;
+            const color = sc < 40 ? 'var(--red)' : (sc < 70 ? 'var(--orange)' : 'var(--green)');
+            return `<div class="rp-score-cell">
+              <div class="rp-score-axis">${AXIS_EMOJI[ax]} ${escapeHTML(ax)}</div>
+              <div class="rp-score-num" style="color:${color}">${sc}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
 
   const digestHtml = digest ? `
     <div class="rp-section">
@@ -483,10 +560,32 @@ async function refreshDigest(silent=false) {
   }
 }
 
-async function exportSession() {
+function toggleExportMenu(ev) {
+  ev.stopPropagation();
+  const menu = document.getElementById('export_menu');
+  if (menu) menu.classList.toggle('open');
+  // 바깥 클릭 시 닫기
+  setTimeout(() => {
+    const close = (e) => {
+      if (menu && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+        document.removeEventListener('click', close);
+      }
+    };
+    document.addEventListener('click', close);
+  }, 50);
+}
+
+async function exportSession(format) {
   const s = State.currentSession;
   if (!s) return;
-  window.open(`/api/sessions/${s.id}/export`, '_blank');
+  format = format || 'md';
+  const path = format === 'md' ? `/api/sessions/${s.id}/export`
+              : `/api/sessions/${s.id}/export/${format}`;
+  window.open(path, '_blank');
+  // 메뉴 닫기
+  const menu = document.getElementById('export_menu');
+  if (menu) menu.classList.remove('open');
 }
 
 async function deleteSession(sid, confirmFirst=false) {
@@ -505,8 +604,11 @@ async function deleteSession(sid, confirmFirst=false) {
 // New Session Modal
 // =========================================
 function openNewSessionModal() {
-  State.uploadedFiles = [];
+  State.uploadedFiles = [];     // 단일 모드용
+  State.uploadedA = [];         // 비교 모드 A
+  State.uploadedB = [];         // 비교 모드 B
   State.maxRounds = 3;
+  State.sessionMode = 'single'; // 'single' | 'compare'
   // 기본은 4명만 (각 축 1명씩) 선택
   const byAxis = {};
   for (const p of State.personas) {
@@ -518,6 +620,7 @@ function openNewSessionModal() {
 }
 
 function renderNewSessionModal() {
+  const isCompare = State.sessionMode === 'compare';
   const html = `
     <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
       <div class="modal">
@@ -527,31 +630,81 @@ function renderNewSessionModal() {
         </div>
         <div class="modal-body">
           <div class="field">
+            <label>분석 방식</label>
+            <div class="seg-row">
+              <div class="seg ${!isCompare?'active':''}" onclick="pickMode('single')">📄 단일 분석</div>
+              <div class="seg ${isCompare?'active':''}" onclick="pickMode('compare')">🆚 A/B 비교</div>
+            </div>
+            <div class="hint">${isCompare ? '두 콘텐츠(우리 vs 경쟁사, 또는 A안 vs B안)를 같은 페르소나들이 비교 토론합니다.' : '하나의 URL 또는 파일을 4축으로 진단합니다.'}</div>
+          </div>
+
+          <div class="field">
             <label>토론 주제 *</label>
-            <input class="input" id="ns_query" placeholder="예: 우리 신제품 페이지가 ChatGPT 추천에 잘 들어갈까?">
+            <input class="input" id="ns_query" placeholder="${isCompare ? '예: 우리 페이지 vs 애플 페이지, AI 추천에 누가 더 잘 들어갈까?' : '예: 우리 신제품 페이지가 ChatGPT 추천에 잘 들어갈까?'}">
           </div>
-          <div class="field">
-            <label>분석할 URL</label>
-            <input class="input" id="ns_url" placeholder="https://example.com/product/...">
-            <div class="hint">URL이 없으면 첨부파일만 분석할 수도 있습니다.</div>
-          </div>
-          <div class="field">
-            <label>첨부파일 (PDF · 이미지)</label>
-            <div class="upload-zone" onclick="document.getElementById('ns_file').click()">
-              <div style="font-size:22px; margin-bottom:4px">📎</div>
-              클릭해서 파일을 선택하세요
-              <div class="hint" style="margin-top:4px">PDF / PNG / JPG / WEBP · 여러 개 가능</div>
-            </div>
-            <input type="file" id="ns_file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="display:none" onchange="handleUpload(event)">
-            <div class="uploaded-list" id="uploaded_list">
-              ${State.uploadedFiles.map(f => `
-                <div class="uploaded-item">
-                  ${f.kind === 'pdf' ? '📄' : '🖼️'} ${escapeHTML(f.filename)}
-                  <span class="x" onclick="removeUpload('${f.id}')">✕</span>
+
+          ${isCompare ? `
+            <!-- 비교 모드: A/B 카드 두 개 -->
+            <div class="compare-grid">
+              ${['A','B'].map(side => {
+                const label = side === 'A' ? '좌측 (A)' : '우측 (B)';
+                const arr = side === 'A' ? State.uploadedA : State.uploadedB;
+                return `
+                <div class="compare-card">
+                  <div class="compare-card-head">${label}</div>
+                  <div class="field" style="margin-bottom:10px">
+                    <label>라벨</label>
+                    <input class="input" id="ns_label_${side}" placeholder="${side === 'A' ? '우리 페이지' : '애플 페이지'}">
+                  </div>
+                  <div class="field" style="margin-bottom:10px">
+                    <label>URL (웹페이지 또는 YouTube)</label>
+                    <input class="input" id="ns_url_${side}" placeholder="https://...">
+                  </div>
+                  <div class="field" style="margin-bottom:0">
+                    <label>첨부 (PDF · 이미지)</label>
+                    <div class="upload-zone-mini" onclick="document.getElementById('ns_file_${side}').click()">
+                      📎 클릭해서 추가
+                    </div>
+                    <input type="file" id="ns_file_${side}" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="display:none" onchange="handleUpload(event, '${side}')">
+                    <div class="uploaded-list">
+                      ${arr.map(f => `
+                        <div class="uploaded-item">
+                          ${f.kind === 'pdf' ? '📄' : '🖼️'} ${escapeHTML(f.filename)}
+                          <span class="x" onclick="removeUpload('${f.id}', '${side}')">✕</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
                 </div>
-              `).join('')}
+                `;
+              }).join('')}
             </div>
-          </div>
+          ` : `
+            <!-- 단일 모드 -->
+            <div class="field">
+              <label>분석할 URL (웹페이지 또는 YouTube)</label>
+              <input class="input" id="ns_url" placeholder="https://example.com/product/... 또는 https://youtube.com/watch?v=...">
+              <div class="hint">URL이 없으면 첨부파일만 분석할 수도 있습니다. YouTube는 자막을 자동 추출합니다.</div>
+            </div>
+            <div class="field">
+              <label>첨부파일 (PDF · 이미지)</label>
+              <div class="upload-zone" onclick="document.getElementById('ns_file').click()">
+                <div style="font-size:22px; margin-bottom:4px">📎</div>
+                클릭해서 파일을 선택하세요
+                <div class="hint" style="margin-top:4px">PDF / PNG / JPG / WEBP · 여러 개 가능</div>
+              </div>
+              <input type="file" id="ns_file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" style="display:none" onchange="handleUpload(event)">
+              <div class="uploaded-list" id="uploaded_list">
+                ${State.uploadedFiles.map(f => `
+                  <div class="uploaded-item">
+                    ${f.kind === 'pdf' ? '📄' : '🖼️'} ${escapeHTML(f.filename)}
+                    <span class="x" onclick="removeUpload('${f.id}')">✕</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `}
+
           <div class="field">
             <label>최대 라운드 (자동 진행 시)</label>
             <div class="dim-toggle-row">
@@ -561,7 +714,7 @@ function renderNewSessionModal() {
                 </div>
               `).join('')}
             </div>
-            <div class="hint">한 라운드 = 모든 페르소나가 한 번씩 발언. 페르소나 4명 × 3라운드 = 12개 발언.</div>
+            <div class="hint">한 라운드 = 모든 페르소나가 한 번씩 발언.</div>
           </div>
           <div class="field">
             <label>참여 페르소나 (${State.selectedPersonas.length}명)</label>
@@ -576,7 +729,7 @@ function renderNewSessionModal() {
                 </div>
               `).join('')}
             </div>
-            <div class="hint">3~5명 권장. 더 많으면 다이제스트가 풍부해지지만 한 라운드가 오래 걸립니다.</div>
+            <div class="hint">3~5명 권장.</div>
           </div>
         </div>
         <div class="modal-foot">
@@ -587,6 +740,11 @@ function renderNewSessionModal() {
     </div>
   `;
   document.getElementById('modal_root').innerHTML = html;
+}
+
+function pickMode(mode) {
+  State.sessionMode = mode;
+  renderNewSessionModal();
 }
 
 function togglePersonaPick(name) {
@@ -601,7 +759,7 @@ function pickRounds(n) {
   renderNewSessionModal();
 }
 
-async function handleUpload(ev) {
+async function handleUpload(ev, side) {
   const files = Array.from(ev.target.files || []);
   for (const f of files) {
     const fd = new FormData();
@@ -611,7 +769,9 @@ async function handleUpload(ev) {
       const r = await fetch('/api/upload', { method: 'POST', body: fd });
       const d = await r.json();
       if (!r.ok) throw new Error(d.detail || '업로드 실패');
-      State.uploadedFiles.push(d);
+      if (side === 'A') State.uploadedA.push(d);
+      else if (side === 'B') State.uploadedB.push(d);
+      else State.uploadedFiles.push(d);
     } catch (e) {
       toast(`업로드 실패: ${f.name}`, 'error');
     }
@@ -619,16 +779,16 @@ async function handleUpload(ev) {
   renderNewSessionModal();
 }
 
-function removeUpload(id) {
-  State.uploadedFiles = State.uploadedFiles.filter(f => f.id !== id);
+function removeUpload(id, side) {
+  if (side === 'A') State.uploadedA = State.uploadedA.filter(f => f.id !== id);
+  else if (side === 'B') State.uploadedB = State.uploadedB.filter(f => f.id !== id);
+  else State.uploadedFiles = State.uploadedFiles.filter(f => f.id !== id);
   renderNewSessionModal();
 }
 
 async function startSession() {
   const query = document.getElementById('ns_query').value.trim();
-  const url = document.getElementById('ns_url').value.trim();
   if (!query) { toast('토론 주제를 입력하세요', 'error'); return; }
-  if (!url && !State.uploadedFiles.length) { toast('URL 또는 파일 중 하나는 필요해요', 'error'); return; }
   if (!State.selectedPersonas.length) { toast('페르소나를 1명 이상 선택하세요', 'error'); return; }
 
   const chosenPersonas = State.personas.filter(p => State.selectedPersonas.includes(p.name));
@@ -636,16 +796,44 @@ async function startSession() {
   btn.disabled = true;
   btn.textContent = '분석 중...';
 
+  let payload;
+  if (State.sessionMode === 'compare') {
+    const urlA = document.getElementById('ns_url_A').value.trim();
+    const urlB = document.getElementById('ns_url_B').value.trim();
+    const labelA = document.getElementById('ns_label_A').value.trim() || '우리';
+    const labelB = document.getElementById('ns_label_B').value.trim() || '비교 대상';
+    if ((!urlA && !State.uploadedA.length) || (!urlB && !State.uploadedB.length)) {
+      toast('양쪽 모두 URL 또는 파일이 필요해요', 'error');
+      btn.disabled = false; btn.textContent = '분석 시작';
+      return;
+    }
+    payload = {
+      query, mode: 'compare',
+      personas: chosenPersonas,
+      max_rounds: State.maxRounds || 3,
+      side_a: { label: labelA, url: urlA, attachment_ids: State.uploadedA.map(f => f.id) },
+      side_b: { label: labelB, url: urlB, attachment_ids: State.uploadedB.map(f => f.id) },
+    };
+  } else {
+    const url = document.getElementById('ns_url').value.trim();
+    if (!url && !State.uploadedFiles.length) {
+      toast('URL 또는 파일 중 하나는 필요해요', 'error');
+      btn.disabled = false; btn.textContent = '분석 시작';
+      return;
+    }
+    payload = {
+      query, url, mode: 'single',
+      personas: chosenPersonas,
+      attachment_ids: State.uploadedFiles.map(f => f.id),
+      max_rounds: State.maxRounds || 3,
+    };
+  }
+
   try {
     const r = await fetch('/api/sessions', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        query, url,
-        personas: chosenPersonas,
-        attachment_ids: State.uploadedFiles.map(f => f.id),
-        max_rounds: State.maxRounds || 3,
-      })
+      body: JSON.stringify(payload)
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || '세션 생성 실패');
