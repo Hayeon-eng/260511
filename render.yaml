@@ -18,7 +18,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: GEMINI_MODEL
-        value: gemini-1.5-flash
+        value: gemini-2.5-flash
       - key: DB_PATH
         value: /tmp/discussion.db
       # GEMINI_API_KEY는 Render 대시보드에서 직접 추가 (보안)

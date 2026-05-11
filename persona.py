@@ -116,7 +116,8 @@ class Persona:
         )
 
     def respond(self, query: str, context: str, analysis: Dict[str, Any],
-                history: List[Dict[str, Any]]) -> Dict[str, Any]:
+                history: List[Dict[str, Any]],
+                compare: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         recent = history[-10:] if history else []
 
         used_evidence = []
@@ -148,6 +149,48 @@ class Persona:
         history_text = "\n".join(history_lines) or "(아직 발언 없음 — 당신이 첫 발화자입니다)"
 
         technical = analysis.get("technical_checks", {})
+
+        # 비교 모드 컨텍스트
+        compare_block = ""
+        compare_instruction = ""
+        if compare:
+            a = compare.get("side_a", {}) or {}
+            b = compare.get("side_b", {}) or {}
+            label_a = compare.get("label_a") or "A"
+            label_b = compare.get("label_b") or "B"
+            a_ctx = (a.get("context") or "")[:1200]
+            b_ctx = (b.get("context") or "")[:1200]
+            a_an = a.get("analysis", {}) or {}
+            b_an = b.get("analysis", {}) or {}
+            compare_block = f"""
+
+============================================
+🆚 비교 모드 — 좌측({label_a}) vs 우측({label_b})
+============================================
+
+[좌측 - {label_a}]
+- URL/제목: {a.get('url','')} / {a_an.get('summary','')}
+- AEO 점수: {a_an.get('aeo_score', 0)}/100
+- 본문 발췌: {a_ctx}
+- 부족한 스키마: {a_an.get('schema_gaps', [])}
+- 카피 개선안: {a_an.get('copy_suggestions', [])}
+- 기술 체크: {json.dumps(a_an.get('technical_checks', {}), ensure_ascii=False)}
+
+[우측 - {label_b}]
+- URL/제목: {b.get('url','')} / {b_an.get('summary','')}
+- AEO 점수: {b_an.get('aeo_score', 0)}/100
+- 본문 발췌: {b_ctx}
+- 부족한 스키마: {b_an.get('schema_gaps', [])}
+- 카피 개선안: {b_an.get('copy_suggestions', [])}
+- 기술 체크: {json.dumps(b_an.get('technical_checks', {}), ensure_ascii=False)}
+"""
+            compare_instruction = (
+                f"\n- 비교 모드입니다. 모든 evidence의 source 앞에 반드시 [{label_a}] 또는 [{label_b}] 접두어를 붙이세요. "
+                f"  예: \"[{label_a}] H1 태그\", \"[{label_b}] JSON-LD\".\n"
+                f"- argument에서 좌·우 차이를 명확히 짚어야 합니다 (어느 쪽이 무엇이 더 좋은지/부족한지).\n"
+                f"- action은 약한 쪽({label_a}/{label_b} 중)을 어떻게 강한 쪽 수준으로 끌어올릴지 구체 제시.\n"
+            )
+
         prompt = f"""[토론 주제]
 {query}
 
@@ -166,7 +209,7 @@ class Persona:
 - 비주얼 제언: {analysis.get('visual_suggestions', [])}
 - 소비자 인식: {analysis.get('consumer_perception','')}
 - 예상 질의: {analysis.get('likely_questions', [])}
-
+{compare_block}
 [지금까지의 발언 ({len(recent)}건)]
 {history_text}
 
@@ -185,7 +228,7 @@ class Persona:
 - 다른 페르소나와 중복되지 않는 새로운 evidence·관점을 가져오세요.
 - 본인의 주력 축({', '.join(self.focus_dimensions) if self.focus_dimensions else '자유'})을 우선 고려하되, 이미 다뤄진 축이면 다른 축을 선택해도 됩니다.
 - 닉네임 정체성에 맞는 말투·태도를 반드시 드러내세요.
-- argument는 반드시 150자 이상, action은 50자 이상.
+- argument는 반드시 150자 이상, action은 50자 이상.{compare_instruction}
 {RESPONSE_SCHEMA_HINT}
 """
 
