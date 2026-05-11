@@ -220,3 +220,89 @@
   color: var(--text-tertiary);
   margin-top: 3px;
 }
+
+
+/* =====================================================
+   RIGHT PANEL — 요약 카드
+   ===================================================== */
+.rp-summary-card {
+  background: var(--surface);
+  border: 1px solid var(--separator);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--sh-sm);
+}
+.rp-summary-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.rp-summary-headline {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  color: var(--text);
+}
+.rp-summary-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+.rp-summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.rp-summary-list li {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  padding-left: 12px;
+  position: relative;
+}
+.rp-summary-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--tint);
+}
+.rp-summary-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rp-summary-side {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.rp-summary-side strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.rp-summary-side span {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.rp-summary-empty {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 11px 12px;
+}

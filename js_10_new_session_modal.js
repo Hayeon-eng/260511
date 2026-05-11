@@ -57,6 +57,7 @@ function renderNewSessionModal() {
                   <div class="field" style="margin-bottom:10px">
                     <label>URL (웹페이지 또는 YouTube)</label>
                     <input class="input" id="ns_url_${side}" placeholder="https://...">
+                    <div class="hint">YouTube는 가능한 경우 자막/자동자막과 페이지 메타데이터를 분석합니다. 영상 화면 자체는 분석하지 않습니다.</div>
                   </div>
                   <div class="field" style="margin-bottom:0">
                     <label>첨부 (PDF · 이미지)</label>
@@ -82,7 +83,7 @@ function renderNewSessionModal() {
             <div class="field">
               <label>분석할 URL (웹페이지 또는 YouTube)</label>
               <input class="input" id="ns_url" placeholder="https://example.com/product/... 또는 https://youtube.com/watch?v=...">
-              <div class="hint">URL이 없으면 첨부파일만 분석할 수도 있습니다. YouTube는 자막을 자동 추출합니다.</div>
+              <div class="hint">URL이 없으면 첨부파일만 분석할 수도 있습니다. YouTube는 가능한 경우 자막/자동자막과 페이지 메타데이터를 분석합니다. 영상 화면 자체는 분석하지 않습니다.</div>
             </div>
             <div class="field">
               <label>첨부파일 (PDF · 이미지)</label>

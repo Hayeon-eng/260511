@@ -1,6 +1,77 @@
 // =========================================
 // Right Panel — Digest + Score
 // =========================================
+
+function renderRightPanelSummary(session, digest) {
+  const isCompare = session.mode === 'compare';
+  const analysis = session.analysis || {};
+
+  if (digest && (digest.headline || (digest.top_insights || []).length)) {
+    return `
+      <div class="rp-summary-card">
+        <div class="rp-summary-kicker">요약</div>
+        ${digest.headline ? `<div class="rp-summary-headline">${escapeHTML(digest.headline)}</div>` : ''}
+        ${(digest.top_insights || []).length ? `
+          <ul class="rp-summary-list">
+            ${digest.top_insights.slice(0, 3).map(x => `<li>${escapeHTML(x)}</li>`).join('')}
+          </ul>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  if (isCompare) {
+    const a = session.side_a || {};
+    const b = session.side_b || {};
+    const aLabel = a.label || session.label_a || 'A';
+    const bLabel = b.label || session.label_b || 'B';
+    const aAn = a.analysis || {};
+    const bAn = b.analysis || {};
+    const aSummary = aAn.summary || aAn.aeo_reason || '';
+    const bSummary = bAn.summary || bAn.aeo_reason || '';
+    const hasSummary = Boolean(aSummary || bSummary);
+
+    return `
+      <div class="rp-summary-card">
+        <div class="rp-summary-kicker">요약</div>
+        ${hasSummary ? `
+          <div class="rp-summary-compare">
+            <div class="rp-summary-side">
+              <strong>${escapeHTML(aLabel)}</strong>
+              <span>${escapeHTML(aSummary || '요약 없음')}</span>
+            </div>
+            <div class="rp-summary-side">
+              <strong>${escapeHTML(bLabel)}</strong>
+              <span>${escapeHTML(bSummary || '요약 없음')}</span>
+            </div>
+          </div>
+        ` : `
+          <div class="rp-summary-empty">
+            아직 AI 1차 진단 요약이 비어 있습니다.<br>
+            양쪽 AEO 점수가 0으로 보이면 분석 응답이 비었거나 JSON 파싱/토큰/키/크롤링 문제일 수 있습니다.
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  const summary = analysis.summary || analysis.aeo_reason || '';
+  return `
+    <div class="rp-summary-card">
+      <div class="rp-summary-kicker">요약</div>
+      ${summary ? `
+        <div class="rp-summary-headline">${escapeHTML(summary)}</div>
+        ${analysis.consumer_perception ? `<div class="rp-summary-desc">${escapeHTML(analysis.consumer_perception)}</div>` : ''}
+      ` : `
+        <div class="rp-summary-empty">
+          아직 AI 1차 진단 요약이 비어 있습니다.<br>
+          AEO 점수가 0으로 보이면 분석 응답이 비었거나 JSON 파싱/토큰/키/크롤링 문제일 수 있습니다.
+        </div>
+      `}
+    </div>
+  `;
+}
+
 function renderRightPanel() {
   const s = State.currentSession;
   if (!s) return;
@@ -153,9 +224,10 @@ function renderRightPanel() {
       </div>` : ''}
   ` : `<div class="rp-empty">토론이 시작되면 여기에<br>축별 합의·충돌·액션이 정리됩니다.</div>`;
 
+  const summaryHtml = renderRightPanelSummary(s, digest);
   const reliabilityHtml = renderAnalysisReliability(s, 'compact');
 
-  document.getElementById('rp_content').innerHTML = sharpHtml + reliabilityHtml + scoreHtml +
+  document.getElementById('rp_content').innerHTML = summaryHtml + sharpHtml + reliabilityHtml + scoreHtml +
     (digest ? `<div class="rp-section"><div class="rp-title">축별 디테일</div></div>` : '') +
     digestHtml;
 }
