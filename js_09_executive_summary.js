@@ -32,7 +32,10 @@ async function openExecutiveSummary() {
   try {
     const r = await fetch(`/api/sessions/${s.id}/executive_summary`, { method: 'POST' });
     const d = await r.json();
-    if (!r.ok) throw new Error(d.detail || '생성 실패');
+    if (!r.ok) {
+      const detail = typeof d.detail === 'string' ? d.detail : JSON.stringify(d.detail || {});
+      throw new Error(detail || '생성 실패');
+    }
     renderExecutiveSummary(d.summary || {});
   } catch (e) {
     document.getElementById('exec_body').innerHTML = `
@@ -44,7 +47,7 @@ async function openExecutiveSummary() {
 }
 
 function renderExecutiveSummary(summary) {
-  const verdict = summary.verdict || '결론을 생성하지 못했습니다.';
+  const verdict = summary.verdict || '결론 없음';
   const keyGaps = summary.key_gaps || [];
   const actions = summary.actions || [];
   const expected = summary.expected_impact || '';
@@ -53,6 +56,19 @@ function renderExecutiveSummary(summary) {
   // Quick Win은 ⭐, 일반은 임팩트별 색상
   const quickWins = actions.filter(a => a.quick_win);
   const otherActions = actions.filter(a => !a.quick_win);
+  const quickWinSummaryHtml = quickWins.length ? `
+    <div class="exec-quick-summary">
+      <div class="exec-quick-summary-title">⭐ 지금 바로 할 일</div>
+      <ul class="exec-quick-summary-list">
+        ${quickWins.slice(0, 3).map(a => `
+          <li>
+            <strong>${escapeHTML(a.title || '')}</strong>
+            <span>${escapeHTML(a.timeline || '-')} · ${escapeHTML(a.owner || '-')}</span>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  ` : '';
 
   const renderAction = (a, idx) => {
     const impactStars = '★'.repeat(a.impact) + '☆'.repeat(5 - a.impact);
@@ -91,6 +107,10 @@ function renderExecutiveSummary(summary) {
       <div class="exec-verdict-label">🎯 결론</div>
       <div class="exec-verdict-text">"${escapeHTML(verdict)}"</div>
     </div>
+
+    ${renderAnalysisReliability(State.currentSession, 'exec')}
+
+    ${quickWinSummaryHtml}
 
     <!-- 핵심 격차 -->
     ${keyGaps.length ? `

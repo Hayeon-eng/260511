@@ -550,6 +550,13 @@ async def make_executive_summary(sid: str):
     s["turns"] = db.list_turns(sid)
     s["digest"] = db.latest_digest(sid)
     summary = generate_executive_summary(s)
+    if summary.get("_ok") is False:
+        reason = summary.get("error_reason") or "임원 요약 생성 실패"
+        debug = summary.get("debug") or {}
+        raw = (debug.get("raw_preview") or "").replace("\n", " ")[:240]
+        if raw:
+            reason = f"{reason} / 응답 일부: {raw}"
+        raise HTTPException(502, reason)
     return {"summary": summary}
 
 

@@ -112,3 +112,111 @@
   border-radius: var(--r-full);
 }
 
+/* =====================================================
+   SESSION RELIABILITY — 분석 신뢰도 메모
+   ===================================================== */
+.reliability-card {
+  background: var(--surface-2);
+  border: 1px solid var(--separator);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+.reliability-card.compact {
+  padding: 13px 14px;
+  margin-bottom: 20px;
+}
+.reliability-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.reliability-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.reliability-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.reliability-title strong {
+  color: var(--tint);
+  font-size: 18px;
+}
+.reliability-score {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--tint-soft);
+  color: var(--tint);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.reliability-very-high .reliability-score { background: rgba(48,209,88,0.12); color: var(--green); }
+.reliability-good .reliability-score { background: var(--tint-soft); color: var(--tint); }
+.reliability-mid .reliability-score { background: rgba(255,149,0,0.12); color: var(--orange); }
+.reliability-low .reliability-score { background: rgba(255,59,48,0.10); color: var(--red); }
+.reliability-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.reliability-subtitle {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.reliability-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.reliability-col li {
+  position: relative;
+  padding-left: 10px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+.reliability-col li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--text-tertiary);
+}
+.reliability-rubric {
+  margin-top: 10px;
+  border-top: 1px dashed var(--separator);
+  padding-top: 8px;
+}
+.reliability-rubric summary {
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  user-select: none;
+}
+.reliability-rubric div {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--text-tertiary);
+  margin-top: 3px;
+}

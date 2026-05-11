@@ -180,14 +180,25 @@ def generate_executive_summary(session: Dict[str, Any]) -> Dict[str, Any]:
         llm = GeminiLLM(
             system_instruction="당신은 C-Level 보고에 능숙한 컨설팅 파트너입니다. 간결·단언·정량 표현을 선호하며, 항상 JSON으로만 응답합니다."
         )
-        result = llm.generate_json(prompt, temperature=0.3, max_tokens=2500)
 
+        # 임원 요약은 key_gaps/actions/expected_impact까지 포함되어 길어질 수 있습니다.
+        # 기존 2500 토큰에서는 응답이 중간에 잘려 JSON 파싱이 실패할 수 있어 5000으로 올립니다.
+        debug = llm.generate_json_debug(prompt, temperature=0.3, max_tokens=5000)
+        if not debug.get("ok"):
+            log.error(f"executive summary LLM 실패: {debug.get('error')}")
+            return _empty_exec(debug.get("error", "임원 요약 LLM 실패"), debug)
+
+        result = debug.get("data")
         if not isinstance(result, dict):
-            return _empty_exec()
-        return _normalize_exec(result)
+            return _empty_exec("Gemini 응답이 JSON 객체가 아닙니다.", debug)
+
+        normalized = _normalize_exec(result)
+        if not normalized.get("verdict"):
+            return _empty_exec("Gemini 응답에 verdict 필드가 없거나 비어 있습니다.", debug)
+        return normalized
     except Exception as e:
-        log.error(f"executive summary 실패: {e}")
-        return _empty_exec()
+        log.exception("executive summary 실패")
+        return _empty_exec(str(e))
 
 
 def _normalize_exec(d: Dict[str, Any]) -> Dict[str, Any]:
@@ -228,8 +239,11 @@ def _normalize_exec(d: Dict[str, Any]) -> Dict[str, Any]:
     return d
 
 
-def _empty_exec() -> Dict[str, Any]:
+def _empty_exec(reason: str = "", debug: Dict[str, Any] = None) -> Dict[str, Any]:
     return {
+        "_ok": False,
+        "error_reason": reason or "임원 요약 생성 실패",
+        "debug": debug or {},
         "verdict": "",
         "key_gaps": [],
         "actions": [],

@@ -92,6 +92,26 @@ def _extract_text(resp) -> str:
     return ""
 
 
+def _response_finish_reason(resp) -> str:
+    """Gemini 응답의 finish_reason을 사람이 읽을 수 있게 추출."""
+    try:
+        cands = getattr(resp, "candidates", None) or []
+        if cands:
+            return str(getattr(cands[0], "finish_reason", "") or "")
+    except Exception:
+        pass
+    return ""
+
+
+def _response_prompt_feedback(resp) -> str:
+    """프롬프트 차단/안전 필터 관련 피드백이 있으면 추출."""
+    try:
+        pf = getattr(resp, "prompt_feedback", None)
+        return str(pf or "")
+    except Exception:
+        return ""
+
+
 class GeminiLLM:
     """Gemini API 래퍼 (텍스트 + JSON + 비전)."""
 
@@ -146,6 +166,80 @@ class GeminiLLM:
         except Exception as e:
             log.error(f"Gemini generate_json 실패 ({self.model_name}): {e}")
             return {}
+
+    def generate_json_debug(self, prompt: str, temperature: float = 0.3,
+                            max_tokens: int = 1500) -> dict:
+        """JSON 생성 결과와 실패 원인을 함께 반환.
+
+        기존 generate_json은 다른 기능이 의존하므로 그대로 두고,
+        임원 요약처럼 실패 원인 표시가 필요한 곳에서만 이 메서드를 사용합니다.
+        """
+        text = ""
+        finish_reason = ""
+        prompt_feedback = ""
+        try:
+            cfg = _build_config(self.system_instruction, temperature, max_tokens, json_mode=True)
+            resp = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=cfg,
+            )
+            finish_reason = _response_finish_reason(resp)
+            prompt_feedback = _response_prompt_feedback(resp)
+            text = _extract_text(resp)
+            if not text or text.startswith("(빈 응답"):
+                return {
+                    "ok": False,
+                    "data": {},
+                    "error": f"Gemini 빈 응답: {text or finish_reason or prompt_feedback or '원인 미상'}",
+                    "finish_reason": finish_reason,
+                    "prompt_feedback": prompt_feedback,
+                    "raw_preview": text[:800],
+                }
+            try:
+                return {
+                    "ok": True,
+                    "data": json.loads(text),
+                    "error": "",
+                    "finish_reason": finish_reason,
+                    "prompt_feedback": prompt_feedback,
+                    "raw_preview": text[:800],
+                }
+            except json.JSONDecodeError as e:
+                try:
+                    start = text.find("{")
+                    end = text.rfind("}") + 1
+                    if start != -1 and end > start:
+                        return {
+                            "ok": True,
+                            "data": json.loads(text[start:end]),
+                            "error": "",
+                            "finish_reason": finish_reason,
+                            "prompt_feedback": prompt_feedback,
+                            "raw_preview": text[:800],
+                        }
+                except Exception:
+                    pass
+                reason = f"Gemini JSON 파싱 실패: {e}"
+                if finish_reason:
+                    reason += f" / finish_reason={finish_reason}"
+                return {
+                    "ok": False,
+                    "data": {},
+                    "error": reason,
+                    "finish_reason": finish_reason,
+                    "prompt_feedback": prompt_feedback,
+                    "raw_preview": text[:800],
+                }
+        except Exception as e:
+            return {
+                "ok": False,
+                "data": {},
+                "error": f"Gemini API 호출 실패 ({self.model_name}): {e}",
+                "finish_reason": finish_reason,
+                "prompt_feedback": prompt_feedback,
+                "raw_preview": text[:800],
+            }
 
     # ---------- 멀티모달 (이미지) ----------
     def generate_with_images(self, prompt: str, images: List[Image.Image],

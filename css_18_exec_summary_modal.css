@@ -241,3 +241,53 @@
   color: var(--text-secondary);
   margin-bottom: 4px;
 }
+
+/* Quick Win 상단 요약 */
+.exec-quick-summary {
+  background: linear-gradient(135deg, rgba(255,204,0,0.14), rgba(255,149,0,0.08));
+  border: 1.5px solid rgba(255,149,0,0.30);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin: -8px 0 22px;
+}
+.exec-quick-summary-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 8px;
+}
+.exec-quick-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.exec-quick-summary-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.exec-quick-summary-list strong {
+  color: var(--text);
+}
+.exec-quick-summary-list span {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+/* 임원 요약 안의 검증 메모 */
+.modal-wide .reliability-card {
+  margin-bottom: 22px;
+  background: var(--surface-2);
+}
+.modal-wide .reliability-body {
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) {
+  .modal-wide .reliability-body { grid-template-columns: 1fr; }
+}

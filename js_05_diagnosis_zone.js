@@ -212,6 +212,7 @@ function renderTurnCard(t, opts) {
       `;
     }).join('');
 
+
     return `
       <div class="dim-block-v2 axis-bg-${axClass}">
         <div class="dim-axis-v2 axis-${axClass}">
@@ -232,6 +233,7 @@ function renderTurnCard(t, opts) {
             <div class="dim-action-v2">${escapeHTML(d.action)}</div>
           </div>
         ` : ''}
+
 
         ${evHtml ? `
           <details class="evidence-collapse">
