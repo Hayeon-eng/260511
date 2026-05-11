@@ -157,14 +157,14 @@ function renderRightPanel() {
     const bLabel = b.label || s.label_b || 'B';
     scoreHtml = `
       <div class="rp-section">
-        <div class="rp-title">축별 비교 점수</div>
+        <div class="rp-title">5개 축 비교 점수</div>
         <div class="rp-compare-grid">
           <div class="rp-compare-head">${escapeHTML(aLabel)}</div>
           <div class="rp-compare-head" style="text-align:center; color:var(--text-tertiary)">vs</div>
           <div class="rp-compare-head">${escapeHTML(bLabel)}</div>
           ${AXES.map(ax => {
-            const a_d = (aAn.by_dimension || {})[ax] || {};
-            const b_d = (bAn.by_dimension || {})[ax] || {};
+            const a_d = getDimensionData(aAn, ax);
+            const b_d = getDimensionData(bAn, ax);
             const aS = a_d.score || 0, bS = b_d.score || 0;
             const aClr = scoreColorVar(aS);
             const bClr = scoreColorVar(bS);
@@ -181,10 +181,10 @@ function renderRightPanel() {
     const byDim = analysis.by_dimension || {};
     scoreHtml = `
       <div class="rp-section">
-        <div class="rp-title">축별 진단 점수</div>
+        <div class="rp-title">5개 축 진단 점수</div>
         <div class="rp-score-grid">
           ${AXES.map(ax => {
-            const d = byDim[ax] || {};
+            const d = getDimensionData(analysis, ax);
             const sc = d.score || 0;
             return `<div class="rp-score-cell">
               <div class="rp-score-axis">${AXIS_EMOJI[ax]} ${escapeHTML(ax)}</div>
@@ -199,7 +199,7 @@ function renderRightPanel() {
   // ============ 다이제스트 상세 ============
   const digestHtml = digest ? `
     ${AXES.map(ax => {
-      const d = (digest.by_dimension || {})[ax] || {};
+      const d = (digest.by_dimension || {})[ax] || getDimensionData(analysis, ax);
       const hasContent = (d.consensus||[]).length || (d.conflicts||[]).length || (d.actions||[]).length;
       if (!hasContent) return '';
       return `
@@ -225,11 +225,10 @@ function renderRightPanel() {
   ` : `<div class="rp-empty">토론이 시작되면 여기에<br>축별 합의·충돌·액션이 정리됩니다.</div>`;
 
   const summaryHtml = renderRightPanelSummary(s, digest);
-  const brandFitHtml = renderBrandFitSummary(s, 'compact');
   const reliabilityHtml = renderAnalysisReliability(s, 'compact');
 
-  document.getElementById('rp_content').innerHTML = summaryHtml + brandFitHtml + sharpHtml + reliabilityHtml + scoreHtml +
-    (digest ? `<div class="rp-section"><div class="rp-title">축별 디테일</div></div>` : '') +
-    digestHtml;
+  document.getElementById('rp_content').innerHTML = summaryHtml + sharpHtml + scoreHtml +
+    (digest ? `<div class="rp-section"><div class="rp-title">5개 축 디테일</div></div>` : '') +
+    digestHtml + reliabilityHtml;
 }
 

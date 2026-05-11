@@ -5,15 +5,11 @@ function openNewSessionModal() {
   State.uploadedFiles = [];     // 단일 모드용
   State.uploadedA = [];         // 비교 모드 A
   State.uploadedB = [];         // 비교 모드 B
-  State.maxRounds = 3;
+  State.maxRounds = 1;
   State.sessionMode = 'single'; // 'single' | 'compare'
-  // 기본은 4명만 (각 축 1명씩) 선택
-  const byAxis = {};
-  for (const p of State.personas) {
-    const ax = (p.focus_dimensions || [])[0] || '기타';
-    if (!byAxis[ax]) byAxis[ax] = p;
-  }
-  State.selectedPersonas = Object.values(byAxis).slice(0, 4).map(p => p.name);
+  // 토큰 절약을 위해 기본은 1라운드 + 1명만 선택
+  const preferred = State.personas.find(p => p.name === 'AICommerceHacker') || State.personas.find(p => (p.focus_dimensions || []).includes('AI Commerce')) || State.personas[0];
+  State.selectedPersonas = preferred ? [preferred.name] : [];
   renderNewSessionModal();
 }
 
@@ -33,12 +29,12 @@ function renderNewSessionModal() {
               <div class="seg ${!isCompare?'active':''}" onclick="pickMode('single')">📄 단일 분석</div>
               <div class="seg ${isCompare?'active':''}" onclick="pickMode('compare')">🆚 A/B 비교</div>
             </div>
-            <div class="hint">${isCompare ? '두 콘텐츠(우리 vs 경쟁사, 또는 A안 vs B안)를 같은 페르소나들이 비교 토론합니다.' : '하나의 URL 또는 파일을 4축으로 진단합니다.'}</div>
+            <div class="hint">${isCompare ? '두 콘텐츠(우리 vs 경쟁사, 또는 A안 vs B안)를 같은 페르소나들이 비교 토론합니다.' : '하나의 URL 또는 파일을 5개 축으로 진단합니다.'}</div>
           </div>
 
           <div class="field">
             <label>토론 주제 *</label>
-            <input class="input" id="ns_query" placeholder="${isCompare ? '예: 우리 페이지 vs 애플 페이지, AI 추천에 누가 더 잘 들어갈까?' : '예: 우리 신제품 페이지가 ChatGPT 추천에 잘 들어갈까?'}">
+            <input class="input" id="ns_query" placeholder="${isCompare ? '예: 우리 페이지 vs 애플 페이지, AI 추천에 누가 더 잘 들어갈까?' : '예: 우리 신제품 페이지가 AI Agent 추천에 잘 들어갈까?'}">
           </div>
 
           ${isCompare ? `
@@ -128,7 +124,7 @@ function renderNewSessionModal() {
                 </div>
               `).join('')}
             </div>
-            <div class="hint">3~5명 권장.</div>
+            <div class="hint">토큰 절약을 위해 기본은 1명입니다. 필요할 때만 페르소나를 추가하세요.</div>
           </div>
         </div>
         <div class="modal-foot">
@@ -209,7 +205,7 @@ async function startSession() {
     payload = {
       query, mode: 'compare',
       personas: chosenPersonas,
-      max_rounds: State.maxRounds || 3,
+      max_rounds: State.maxRounds || 1,
       side_a: { label: labelA, url: urlA, attachment_ids: State.uploadedA.map(f => f.id) },
       side_b: { label: labelB, url: urlB, attachment_ids: State.uploadedB.map(f => f.id) },
     };
@@ -224,7 +220,7 @@ async function startSession() {
       query, url, mode: 'single',
       personas: chosenPersonas,
       attachment_ids: State.uploadedFiles.map(f => f.id),
-      max_rounds: State.maxRounds || 3,
+      max_rounds: State.maxRounds || 1,
     };
   }
 

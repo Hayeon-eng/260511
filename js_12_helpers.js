@@ -148,7 +148,7 @@ function calculateAnalysisReliability(session) {
   if (quoteCount) basis.push(`직접 인용 ${quoteCount}개`);
   if (digest) basis.push('라이브 다이제스트 생성됨');
 
-  cautions.push('실제 ChatGPT/Google Shopping 노출 여부는 직접 연동되지 않음');
+  cautions.push('실제 AI Agent 노출·추천 여부는 직접 연동되지 않음');
   cautions.push('전환율·클릭률·Merchant Center 상태는 추가 검증 필요');
   if (!hasAnySchema) cautions.push('구조화 데이터 확인 신호가 약함');
   if (evidence.length < 4) cautions.push('페르소나 발언의 직접 근거 수가 적음');
@@ -233,6 +233,23 @@ function normalizeBrandFit(analysis) {
   };
 }
 
+
+function getDimensionData(analysis, axis) {
+  const byDim = (analysis && analysis.by_dimension) || {};
+  if (byDim[axis]) return byDim[axis];
+  if (typeof BRAND_AXIS !== 'undefined' && axis === BRAND_AXIS) {
+    const fit = normalizeBrandFit(analysis || {});
+    return {
+      score: fit.available ? fit.score : 0,
+      findings: fit.findings || [],
+      gaps: fit.gaps || [],
+      actions: fit.actions || [],
+      reason: fit.reason || '',
+    };
+  }
+  return { score: 0, findings: [], gaps: [], actions: [] };
+}
+
 function brandFitCriteriaHtml(targetBrand) {
   const isApple = /apple/i.test(targetBrand || '');
   const isGalaxy = /galaxy|samsung/i.test(targetBrand || '');
@@ -270,12 +287,12 @@ function renderBrandFitSingle(analysis, label) {
       <div class="brand-fit-card muted">
         <div class="brand-fit-head">
           <div>
-            <div class="brand-fit-label">브랜드 적합도</div>
+            <div class="brand-fit-label">브랜드 메시지 적합도</div>
             <div class="brand-fit-title">${escapeHTML(label || '분석 대상')}</div>
           </div>
           <div class="brand-fit-score empty">--</div>
         </div>
-        <div class="brand-fit-empty">브랜드 적합도 분석을 생성하지 못했습니다. AEO 점수가 0으로 보이면 토큰/쿼터/API 응답을 먼저 확인하세요.</div>
+        <div class="brand-fit-empty">브랜드 메시지 적합도 분석을 생성하지 못했습니다. AEO 점수가 0으로 보이면 토큰/쿼터/API 응답을 먼저 확인하세요.</div>
         ${brandFitCriteriaHtml(fit.targetBrand)}
       </div>
     `;
@@ -284,7 +301,7 @@ function renderBrandFitSingle(analysis, label) {
     <div class="brand-fit-card">
       <div class="brand-fit-head">
         <div>
-          <div class="brand-fit-label">브랜드 적합도</div>
+          <div class="brand-fit-label">브랜드 메시지 적합도</div>
           <div class="brand-fit-title">${escapeHTML(label || fit.targetBrand || '분석 대상')}</div>
           ${fit.targetBrand && fit.targetBrand !== 'Unknown' ? `<div class="brand-fit-target">기준 브랜드: ${escapeHTML(fit.targetBrand)}</div>` : ''}
         </div>
@@ -329,5 +346,5 @@ function renderBrandFitSummary(session, variant) {
       </div>
     `;
   }
-  return `<div class="brand-fit-wrap ${compact ? 'compact' : ''}">${renderBrandFitSingle(session.analysis || {}, '브랜드/메시지 적합도')}</div>`;
+  return `<div class="brand-fit-wrap ${compact ? 'compact' : ''}">${renderBrandFitSingle(session.analysis || {}, '브랜드 메시지 적합도')}</div>`;
 }

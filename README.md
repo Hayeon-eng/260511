@@ -1,16 +1,17 @@
 # AEO Lab — AI 토론 플랫폼
 
 여러 페르소나가 같은 콘텐츠를 동시에 진단하고 토론하는 도구.  
-**ChatGPT, Perplexity, Gemini, Google Shopping**이 이 페이지를 얼마나 잘 인용·추천할지를 4가지 축으로 분석합니다.
+**AI Agent**가 이 페이지를 얼마나 잘 인용·추천할지를 5개 축으로 분석합니다.
 
-## 4가지 분석 축
+## 5가지 분석 축
 
 | 축 | 무엇을 본다 |
 |---|---|
 | 📊 **데이터** | JSON-LD/Schema.org, 메타 태그, 구조화된 정보 — AI가 인용할 수 있는 정량/구조 |
 | ✍️ **콘텐츠** | 카피, 메시지, 내러티브, 톤앤매너, 정보 위계 |
-| 🛍️ **AI Commerce** | Google Shopping/ChatGPT Shopping/Gemini가 제품을 추천할 때 우리 데이터를 인용할 가능성 |
+| 🛍️ **AI Commerce** | AI Agent가 제품을 추천할 때 우리 데이터를 인용할 가능성 |
 | 🎨 **UX** | 정보 구조, 탐색 경로, 가독성 (사람과 AI 모두에게 스캐닝 좋은가) |
+| 🎯 **브랜드 메시지 적합도** | Samsung Galaxy / Apple 공식 브랜드 아이덴티티와 브랜드 페르소나 기준의 메시지 정합성 |
 
 ## 기본 페르소나 9명
 
@@ -24,7 +25,7 @@
 | PriceComparer 🔎 | AI Commerce | "이거 사도 돼?"를 AI에 묻는 현실 소비자 |
 | UXResearcher 🎨 | UX | 사용성 테스트 200회, 스캐닝 패턴 분석가 |
 | SkepticalShopper 🤨 | UX | 첫 화면에서 신뢰 안 가면 닫는 까칠한 소비자 |
-| BrandStrategist 🎯 | 콘텐츠·AI Commerce | 브랜드 메시지, 타깃, 포지셔닝 적합도를 보는 마케팅 전략가 |
+| BrandStrategist 🎯 | 브랜드 메시지 적합도 | 브랜드 메시지, 타깃, 포지셔닝 적합도를 보는 마케팅 전략가 |
 
 물론 본인이 직접 페르소나를 추가/수정/삭제할 수 있습니다.
 
@@ -111,7 +112,7 @@ index.html, requirements.txt, render.yaml, Dockerfile, README.md
 ## 사용 방법
 
 1. **새 토론 시작** 버튼 클릭
-2. 토론 주제 입력 (예: "이 페이지가 ChatGPT 추천에 잘 들어갈까?")
+2. 토론 주제 입력 (예: "이 페이지가 AI Agent 추천에 잘 들어갈까?")
 3. 분석할 **URL 또는 PDF/이미지 파일** 업로드
 > YouTube URL은 가능한 경우 자막/자동자막과 페이지 메타데이터를 분석합니다. 영상 화면·장면 자체를 Gemini Vision으로 보는 기능은 현재 포함되어 있지 않습니다.
 

@@ -29,6 +29,7 @@ import re
 import io
 import logging
 import uuid
+from urllib.parse import quote
 from typing import List, Optional
 
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
@@ -110,7 +111,7 @@ class SessionIn(BaseModel):
     personas: List[dict]
     attachment_ids: List[str] = []
     title: str = ""
-    max_rounds: int = 3
+    max_rounds: int = 1
     mode: str = "single"  # 'single' | 'compare'
     side_a: Optional[SideIn] = None
     side_b: Optional[SideIn] = None
@@ -244,13 +245,20 @@ async def delete_persona(pid: str):
 async def seed_defaults():
     """기본 SET 시드. 이미 있는 페르소나는 유지하고, 새 기본 페르소나만 추가."""
     existing = db.list_personas()
-    existing_names = {p.get("name") for p in existing}
+    existing_by_name = {p.get("name"): p for p in existing}
     created = []
+    updated = 0
     for p in DEFAULT_PERSONAS:
-        if p.get("name") not in existing_names:
+        name = p.get("name")
+        if name not in existing_by_name:
             created.append(db.create_persona(p))
+        elif name == "BrandStrategist":
+            current = existing_by_name[name]
+            if current.get("focus_dimensions") != p.get("focus_dimensions"):
+                db.update_persona(current["id"], p)
+                updated += 1
     personas = db.list_personas()
-    return {"seeded": len(created), "personas": personas}
+    return {"seeded": len(created), "updated": updated, "personas": personas}
 
 
 # ============== 세션 ==============
@@ -307,7 +315,7 @@ async def create_session(body: SessionIn):
         url=body.url if mode == "single" else "",
         personas_json=body.personas,
         title=body.title,
-        max_rounds=max(1, min(20, body.max_rounds or 3)),
+        max_rounds=max(1, min(20, body.max_rounds or 1)),
         mode=mode,
         label_a=(body.side_a.label if body.side_a else ""),
         label_b=(body.side_b.label if body.side_b else ""),
@@ -617,7 +625,7 @@ async def export_md(sid: str):
              f"- 요약: {analysis.get('summary','')}",
              f"- 소비자 인식: {analysis.get('consumer_perception','')}\n",
              "## 축별 진단"]
-    for ax in ["데이터", "콘텐츠", "AI Commerce", "UX"]:
+    for ax in ["데이터", "콘텐츠", "AI Commerce", "UX", "브랜드 메시지 적합도"]:
         d = analysis.get("by_dimension", {}).get(ax, {})
         lines.append(f"### {ax} (score: {d.get('score',0)})")
         lines.append("**발견**\n" + "\n".join([f"- {x}" for x in d.get('findings', [])]) or "- 없음")
@@ -641,7 +649,7 @@ async def export_md(sid: str):
         digest = digest_row.get("digest", {})
         lines.append("## 라이브 다이제스트")
         lines.append(f"**헤드라인**: {digest.get('headline','')}\n")
-        for ax in ["데이터", "콘텐츠", "AI Commerce", "UX"]:
+        for ax in ["데이터", "콘텐츠", "AI Commerce", "UX", "브랜드 메시지 적합도"]:
             d = digest.get("by_dimension", {}).get(ax, {})
             lines.append(f"### {ax}")
             if d.get("consensus"):
@@ -662,8 +670,19 @@ async def export_md(sid: str):
             for q in digest["next_questions"]:
                 lines.append(f"- {q}")
 
-    return PlainTextResponse("\n".join(lines), media_type="text/markdown; charset=utf-8")
+    fname = (s.get("title") or "aeo_session").replace("/", "_")[:60] + ".md"
+    return PlainTextResponse(
+        "\n".join(lines),
+        media_type="text/markdown; charset=utf-8",
+        headers=_download_headers(fname, "aeo_session.md"),
+    )
 
+
+
+
+def _download_headers(filename: str, fallback: str) -> dict:
+    safe = quote(filename or fallback)
+    return {"Content-Disposition": f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{safe}"}
 
 # ============== Excel / PPT Export ==============
 def _session_payload(sid: str) -> dict:
@@ -690,7 +709,7 @@ async def export_xlsx(sid: str):
     return Response(
         content=blob,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        headers=_download_headers(fname, "aeo_session.xlsx"),
     )
 
 
@@ -708,5 +727,5 @@ async def export_pptx(sid: str):
     return Response(
         content=blob,
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        headers=_download_headers(fname, "aeo_session.pptx"),
     )

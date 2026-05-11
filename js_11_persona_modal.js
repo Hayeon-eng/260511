@@ -27,7 +27,7 @@ function renderPersonaModal(editing) {
               <div class="persona-guide-title">💡 좋은 페르소나의 조건</div>
               <div class="persona-guide-text">실제 사람처럼 <strong>구체적인 정체성</strong>을 부여할수록 토론에서 날카로운 인사이트가 나옵니다. 단순히 "디자이너" 같은 직무가 아니라, <strong>관심사·습관·말투·취향·약점</strong>까지 정의하세요.</div>
               <div class="persona-guide-example">
-                <strong>예시:</strong> "30대 자취 직장인, 출근길 인스타에서 광고 본 제품을 ChatGPT에 물어보고 결정. 가성비에 민감하지만 디자인 떨어지면 안 산다. 까칠하고 의심 많음."
+                <strong>예시:</strong> "30대 자취 직장인, 출근길 인스타에서 광고 본 제품을 AI Agent에 물어보고 결정. 가성비에 민감하지만 디자인 떨어지면 안 산다. 까칠하고 의심 많음."
               </div>
             </div>
           ` : ''}

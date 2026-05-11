@@ -53,13 +53,11 @@ function renderDiagnosisZone(s) {
           </div>
         </div>
 
-        ${renderBrandFitSummary(s, 'diagnosis')}
-
-        <!-- 4축 비교 막대 -->
+        <!-- 5개 축 비교 막대 -->
         <div class="diag-axis-bars">
           ${AXES.map(ax => {
-            const a_d = (aAn.by_dimension || {})[ax] || {};
-            const b_d = (bAn.by_dimension || {})[ax] || {};
+            const a_d = getDimensionData(aAn, ax);
+            const b_d = getDimensionData(bAn, ax);
             const aS = a_d.score || 0, bS = b_d.score || 0;
             const axClass = cssAxis(ax);
             return `
@@ -80,6 +78,8 @@ function renderDiagnosisZone(s) {
             `;
           }).join('')}
         </div>
+
+        <div class="diag-brand-criteria-note">${brandFitCriteriaHtml('')}</div>
 
         ${renderDiagInsights(aAn, bAn, aLabel, bLabel)}
       </div>
@@ -113,11 +113,9 @@ function renderDiagnosisZone(s) {
         </div>
       </div>
 
-      ${renderBrandFitSummary(s, 'diagnosis')}
-
       <div class="diag-axis-grid">
         ${AXES.map(ax => {
-          const d = byDim[ax] || {};
+          const d = getDimensionData(analysis, ax);
           const sc = d.score || 0;
           const axClass = cssAxis(ax);
           return `
@@ -130,6 +128,7 @@ function renderDiagnosisZone(s) {
               <div class="diag-axis-bar"><div class="diag-axis-bar-fill axis-fill-${axClass}" style="width:${sc}%"></div></div>
               ${(d.findings||[]).length ? `<div class="diag-axis-list"><strong>발견</strong>${d.findings.slice(0,2).map(x=>`<div>· ${escapeHTML(x)}</div>`).join('')}</div>` : ''}
               ${(d.gaps||[]).length ? `<div class="diag-axis-list"><strong>결손</strong>${d.gaps.slice(0,2).map(x=>`<div>· ${escapeHTML(x)}</div>`).join('')}</div>` : ''}
+              ${ax === BRAND_AXIS ? brandFitCriteriaHtml((analysis.brand_fit || {}).target_brand) : ''}
             </div>
           `;
         }).join('')}

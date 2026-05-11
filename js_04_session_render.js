@@ -115,7 +115,7 @@ function renderSession() {
         <div class="zone-banner-icon">💬</div>
         <div class="zone-banner-text">
           <div class="zone-banner-title">실시간 토론</div>
-          <div class="zone-banner-subtitle">${personas.length}명의 페르소나가 4축 관점으로 깊이 있는 의견을 만들어갑니다</div>
+          <div class="zone-banner-subtitle">${personas.length}명의 페르소나가 5개 축 관점으로 깊이 있는 의견을 만들어갑니다</div>
         </div>
         <div class="zone-banner-stats">
           <strong id="turns_count">${(s.turns||[]).length}</strong> 발언

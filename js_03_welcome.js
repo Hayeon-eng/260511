@@ -5,7 +5,7 @@ function renderWelcome() {
   document.getElementById('main_inner').innerHTML = `
     <div class="welcome">
       <h1>AI 토론으로 콘텐츠를 진단하세요</h1>
-      <p>여러 페르소나가 동시에 같은 콘텐츠를 보고 데이터·콘텐츠·AI Commerce·UX 4가지 축으로 분석합니다. ChatGPT, Perplexity, Google Shopping이 이 페이지를 인용·추천할지가 핵심 질문입니다.</p>
+      <p>여러 페르소나가 동시에 같은 콘텐츠를 보고 데이터·콘텐츠·AI Commerce·UX·브랜드 메시지 적합도 5개 축으로 분석합니다. AI Agent가 이 페이지를 인용·추천할지가 핵심 질문입니다.</p>
       <div class="welcome-cards">
         <div class="welcome-card" onclick="openNewSessionModal()">
           <div class="ico" style="background:var(--tint-soft); color:var(--tint)">▶</div>
@@ -20,7 +20,7 @@ function renderWelcome() {
         <div class="welcome-card" onclick="showPersonaLibrary()">
           <div class="ico" style="background:rgba(48,209,88,0.12); color:var(--green)">📚</div>
           <h3>페르소나 둘러보기</h3>
-          <p>기본 제공되는 8명의 분석가를 살펴보세요</p>
+          <p>기본 제공되는 분석가를 살펴보세요</p>
         </div>
       </div>
     </div>
