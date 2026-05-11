@@ -1,1 +1,72 @@
-<!-- placeholder -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEO Lab · AI 토론 플랫폼</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<button class="mobile-menu" onclick="document.getElementById('sidebar').classList.toggle('show')">☰</button>
+
+<div id="app">
+
+  <!-- ============ Sidebar ============ -->
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">A</div>
+      <div>
+        <div class="brand-name">AEO Lab</div>
+        <div class="brand-tag">AI 토론 플랫폼</div>
+      </div>
+    </div>
+
+    <button class="new-session-btn" onclick="openNewSessionModal()">
+      <span>+</span><span>새 토론 시작</span>
+    </button>
+
+    <div class="side-section" style="flex-shrink: 0">
+      <div class="side-section-header">
+        <span class="side-section-title">토론 히스토리</span>
+      </div>
+      <div id="session_list" class="session-list">
+        <div class="empty-mini">아직 토론이 없습니다</div>
+      </div>
+    </div>
+
+    <div class="side-section" style="flex: 1; display: flex; flex-direction: column; min-height: 0">
+      <div class="side-section-header">
+        <span class="side-section-title">페르소나 라이브러리</span>
+        <button class="side-add-btn" onclick="openPersonaModal()">+</button>
+      </div>
+      <div id="persona_list_side" class="persona-list-side">
+        <div class="empty-mini">로딩 중...</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <main id="main">
+    <div class="main-inner" id="main_inner">
+      <!-- 콘텐츠가 동적으로 들어감 -->
+    </div>
+  </main>
+
+  <!-- ============ Right Panel ============ -->
+  <aside id="rightpanel">
+    <div id="rp_content">
+      <div class="rp-empty">
+        토론을 시작하면<br>여기에 분석과 라이브 요약이 표시됩니다.
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============ Modal Container ============ -->
+<div id="modal_root"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
