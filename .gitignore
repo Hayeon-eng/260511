@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+node_modules/
+discussion.db
+*.sqlite
+*.sqlite3
+.DS_Store

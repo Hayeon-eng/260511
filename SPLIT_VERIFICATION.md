@@ -1,0 +1,47 @@
+# Split verification
+
+- static/ folder: not used
+- JS folder: js/
+- CSS folder: css/
+- JS split equals original app.js: True
+- CSS split equals original style.css: True
+- JS files: 13
+  - js/00-state.js
+  - js/01-init.js
+  - js/02-sidebar.js
+  - js/03-welcome.js
+  - js/04-session-render.js
+  - js/05-diagnosis-zone.js
+  - js/06-right-panel.js
+  - js/07-turn-execution.js
+  - js/08-followup.js
+  - js/09-executive-summary.js
+  - js/10-new-session-modal.js
+  - js/11-persona-modal.js
+  - js/12-helpers.js
+- CSS files: 19
+  - css/00-root-base.css
+  - css/01-layout.css
+  - css/02-sidebar.css
+  - css/03-main.css
+  - css/04-modal.css
+  - css/05-segmented-control.css
+  - css/06-compare-card.css
+  - css/07-vs-row.css
+  - css/08-right-panel-compare-grid.css
+  - css/09-export-menu-dropdown.css
+  - css/10-zones.css
+  - css/11-diagnosis-zone.css
+  - css/12-round-divider.css
+  - css/13-turn-card-v2.css
+  - css/14-right-panel-sharp-insights.css
+  - css/15-persona-modal.css
+  - css/16-ask-bar.css
+  - css/17-exec-cta.css
+  - css/18-exec-summary-modal.css
+
+## Changed wiring only
+- index.html: loads ordered /css/*.css files instead of /style.css.
+- index.html: loads ordered /js/*.js files instead of /app.js.
+- main.py: adds StaticFiles import and mounts /js and /css folders.
+- Backend API/business logic was not intentionally changed.

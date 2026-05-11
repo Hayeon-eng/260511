@@ -33,6 +33,7 @@ from typing import List, Optional
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import database as db
@@ -56,6 +57,8 @@ app.add_middleware(
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.mount("/js", StaticFiles(directory=os.path.join(BASE_DIR, "js")), name="js")
+app.mount("/css", StaticFiles(directory=os.path.join(BASE_DIR, "css")), name="css")
 
 
 # ============== Pydantic 모델 ==============
