@@ -25,6 +25,7 @@ FastAPI 메인 앱.
 """
 
 import os
+import re
 import io
 import logging
 import uuid
@@ -33,7 +34,6 @@ from typing import List, Optional
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse, Response
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import database as db
@@ -57,8 +57,24 @@ app.add_middleware(
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app.mount("/js", StaticFiles(directory=os.path.join(BASE_DIR, "js")), name="js")
-app.mount("/css", StaticFiles(directory=os.path.join(BASE_DIR, "css")), name="css")
+
+
+@app.get("/assets/{asset_name}")
+async def flat_asset(asset_name: str):
+    """Serve split frontend files kept at repository root.
+
+    Physical folders are not required for GitHub web upload.
+    Only files named js_*.js or css_*.css are exposed.
+    """
+    if not re.fullmatch(r"(?:js|css)_\d{2}_[A-Za-z0-9_]+\.(?:js|css)", asset_name):
+        raise HTTPException(404, "asset not found")
+
+    path = os.path.join(BASE_DIR, asset_name)
+    if not os.path.isfile(path):
+        raise HTTPException(404, "asset not found")
+
+    media_type = "application/javascript" if asset_name.endswith(".js") else "text/css"
+    return FileResponse(path, media_type=media_type)
 
 
 # ============== Pydantic 모델 ==============

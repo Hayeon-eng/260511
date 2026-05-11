@@ -1,0 +1,45 @@
+/* =====================================================
+   PERSONA MODAL — 가이드 박스
+   ===================================================== */
+.persona-guide-box {
+  background: linear-gradient(135deg, rgba(0,122,255,0.06), rgba(191,90,242,0.05));
+  border: 1px solid rgba(0,122,255,0.15);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.persona-guide-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tint);
+  margin-bottom: 6px;
+}
+.persona-guide-text {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.persona-guide-text strong {
+  color: var(--tint);
+  font-weight: 700;
+}
+.persona-guide-example {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--tint);
+}
+.persona-guide-example strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* textarea 더 크게 (페르소나 모달) */
+#pf_desc, #pf_pers, #pf_exp {
+  min-height: 80px;
+}
+

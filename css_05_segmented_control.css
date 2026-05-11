@@ -1,0 +1,25 @@
+/* ============== Segmented Control ============== */
+.seg-row {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 4px;
+}
+.seg {
+  flex: 1;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .15s;
+}
+.seg.active {
+  background: var(--surface);
+  color: var(--tint);
+  box-shadow: var(--sh-sm);
+}
+

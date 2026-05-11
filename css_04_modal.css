@@ -1,0 +1,226 @@
+/* ============== Modal ============== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.32);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  animation: fadeIn .2s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  box-shadow: var(--sh-lg);
+  animation: modalIn .25s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+.modal-head {
+  padding: 22px 24px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 19px; font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.modal-close {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 16px;
+  display: grid; place-items: center;
+}
+.modal-body { padding: 4px 24px 8px; }
+.modal-foot {
+  padding: 14px 24px 24px;
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 6px; color: var(--text-secondary);
+}
+.field .hint {
+  font-size: 11px; color: var(--text-tertiary);
+  margin-top: 4px;
+}
+.input, .textarea, .select {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--separator);
+  background: var(--surface-2);
+  font-size: 14px;
+  transition: border-color .15s, background .15s;
+  outline: none;
+}
+.input:focus, .textarea:focus, .select:focus {
+  border-color: var(--tint);
+  background: var(--surface);
+}
+.textarea { min-height: 70px; resize: vertical; font-family: inherit; }
+
+.btn-primary, .btn-secondary, .btn-danger {
+  padding: 10px 18px;
+  border-radius: var(--r-md);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all .12s;
+}
+.btn-primary { background: var(--tint); color: white; }
+.btn-primary:hover { background: #0066D6; }
+.btn-primary:active { transform: scale(.97); }
+.btn-primary[disabled] { background: var(--text-tertiary); cursor: not-allowed; }
+.btn-secondary { background: var(--surface-2); color: var(--text); }
+.btn-secondary:hover { background: rgba(0,0,0,0.06); }
+.btn-danger { background: rgba(255,59,48,0.10); color: var(--red); }
+.btn-danger:hover { background: rgba(255,59,48,0.18); }
+
+.dim-toggle-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.dim-toggle {
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: all .12s;
+  border: 1.5px solid transparent;
+}
+.dim-toggle.active {
+  background: var(--tint-soft);
+  color: var(--tint);
+  border-color: var(--tint);
+}
+
+.color-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.color-pick {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2.5px solid transparent;
+  transition: all .12s;
+}
+.color-pick.active { border-color: white; box-shadow: 0 0 0 2px var(--tint); }
+
+.persona-pick-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.persona-pick {
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all .15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.persona-pick:hover { background: rgba(0,0,0,0.04); }
+.persona-pick.selected {
+  border-color: var(--tint);
+  background: var(--tint-soft);
+}
+.persona-pick .pavt {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.persona-pick .pinfo { flex: 1; min-width: 0; }
+.persona-pick .pnick {
+  font-weight: 700; font-size: 13px;
+}
+.persona-pick .ptag {
+  font-size: 11px; color: var(--text-tertiary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.upload-zone {
+  border: 2px dashed var(--separator-strong);
+  border-radius: var(--r-md);
+  padding: 18px;
+  text-align: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 13px;
+}
+.upload-zone:hover { border-color: var(--tint); background: var(--tint-soft); color: var(--tint); }
+.uploaded-list {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-top: 8px;
+}
+.uploaded-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  font-size: 12.5px;
+}
+.uploaded-item .x {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.uploaded-item .x:hover { color: var(--red); }
+
+.emoji-pick-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.emoji-pick {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  display: grid; place-items: center;
+  font-size: 17px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all .12s;
+}
+.emoji-pick.active { border-color: var(--tint); background: var(--tint-soft); }
+
+/* Mobile menu button */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 16px; left: 16px;
+  z-index: 60;
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--sh-md);
+  align-items: center; justify-content: center;
+  font-size: 16px;
+}
+@media (max-width: 800px) { .mobile-menu { display: flex; } .main-inner { padding-top: 72px; } }
+
+.persona-card-detail {
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.detail-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-bottom: 6px;
+}
+.detail-label {
+  font-size: 11px; font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  min-width: 56px;
+}
+.detail-value { font-size: 13px; flex: 1; }
+

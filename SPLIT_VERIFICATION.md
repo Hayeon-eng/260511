@@ -1,47 +1,47 @@
-# Split verification
+# Split verification - folderless upload
 
-- static/ folder: not used
-- JS folder: js/
-- CSS folder: css/
+- Physical folders used: none
+- Large app.js included: no
+- Large style.css included: no
 - JS split equals original app.js: True
 - CSS split equals original style.css: True
 - JS files: 13
-  - js/00-state.js
-  - js/01-init.js
-  - js/02-sidebar.js
-  - js/03-welcome.js
-  - js/04-session-render.js
-  - js/05-diagnosis-zone.js
-  - js/06-right-panel.js
-  - js/07-turn-execution.js
-  - js/08-followup.js
-  - js/09-executive-summary.js
-  - js/10-new-session-modal.js
-  - js/11-persona-modal.js
-  - js/12-helpers.js
+  - js_00_state.js
+  - js_01_init.js
+  - js_02_sidebar.js
+  - js_03_welcome.js
+  - js_04_session_render.js
+  - js_05_diagnosis_zone.js
+  - js_06_right_panel.js
+  - js_07_turn_execution.js
+  - js_08_followup.js
+  - js_09_executive_summary.js
+  - js_10_new_session_modal.js
+  - js_11_persona_modal.js
+  - js_12_helpers.js
 - CSS files: 19
-  - css/00-root-base.css
-  - css/01-layout.css
-  - css/02-sidebar.css
-  - css/03-main.css
-  - css/04-modal.css
-  - css/05-segmented-control.css
-  - css/06-compare-card.css
-  - css/07-vs-row.css
-  - css/08-right-panel-compare-grid.css
-  - css/09-export-menu-dropdown.css
-  - css/10-zones.css
-  - css/11-diagnosis-zone.css
-  - css/12-round-divider.css
-  - css/13-turn-card-v2.css
-  - css/14-right-panel-sharp-insights.css
-  - css/15-persona-modal.css
-  - css/16-ask-bar.css
-  - css/17-exec-cta.css
-  - css/18-exec-summary-modal.css
+  - css_00_root_base.css
+  - css_01_layout.css
+  - css_02_sidebar.css
+  - css_03_main.css
+  - css_04_modal.css
+  - css_05_segmented_control.css
+  - css_06_compare_card.css
+  - css_07_vs_row.css
+  - css_08_right_panel_compare_grid.css
+  - css_09_export_menu_dropdown.css
+  - css_10_zones.css
+  - css_11_diagnosis_zone.css
+  - css_12_round_divider.css
+  - css_13_turn_card_v2.css
+  - css_14_right_panel_sharp_insights.css
+  - css_15_persona_modal.css
+  - css_16_ask_bar.css
+  - css_17_exec_cta.css
+  - css_18_exec_summary_modal.css
 
 ## Changed wiring only
-- index.html: loads ordered /css/*.css files instead of /style.css.
-- index.html: loads ordered /js/*.js files instead of /app.js.
-- main.py: adds StaticFiles import and mounts /js and /css folders.
+- index.html: loads /assets/css_*.css instead of /style.css.
+- index.html: loads /assets/js_*.js instead of /app.js.
+- main.py: adds /assets/{asset_name} route for js_*.js and css_*.css only.
 - Backend API/business logic was not intentionally changed.

@@ -1,0 +1,26 @@
+/* =====================================================
+   ROUND DIVIDER
+   ===================================================== */
+.round-divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 24px 0 16px;
+}
+.round-divider:first-child {
+  margin-top: 8px;
+}
+.round-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--separator-strong) 30%, var(--separator-strong) 70%, transparent);
+}
+.round-divider-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--indigo);
+  background: rgba(88,86,214,0.10);
+  padding: 4px 14px;
+  border-radius: var(--r-full);
+  letter-spacing: 0.04em;
+}
+

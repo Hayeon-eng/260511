@@ -1,0 +1,89 @@
+/* =====================================================
+   ZONE — AI 1차 진단 + 실시간 토론 명확히 구분
+   ===================================================== */
+.zone {
+  margin-bottom: 22px;
+}
+.zone-banner {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--r-lg);
+  margin-bottom: 14px;
+}
+.zone-banner-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.zone-banner-text { flex: 1; min-width: 0; }
+.zone-banner-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.zone-banner-subtitle {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.zone-banner-stats {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.zone-banner-stats strong {
+  color: var(--text);
+  font-size: 16px;
+  font-family: var(--font-display);
+}
+.zone-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Zone 1: 진단 — 차분한 인디고 톤 */
+.zone-diagnosis {
+  background: linear-gradient(135deg, rgba(88,86,214,0.04), rgba(0,122,255,0.03));
+  border: 1px solid rgba(88,86,214,0.12);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.zone-banner-diagnosis {
+  background: linear-gradient(135deg, rgba(88,86,214,0.10), rgba(0,122,255,0.08));
+}
+.zone-banner-diagnosis .zone-banner-icon {
+  background: rgba(88,86,214,0.18);
+  color: var(--indigo);
+}
+.zone-banner-diagnosis .zone-banner-title { color: var(--indigo); }
+.zone-banner-diagnosis .zone-tag {
+  background: rgba(88,86,214,0.18);
+  color: var(--indigo);
+}
+
+/* Zone 2: 토론 — 활기찬 핑크/오렌지 톤 */
+.zone-discussion {
+  background: linear-gradient(135deg, rgba(255,55,95,0.025), rgba(255,149,0,0.025));
+  border: 1px solid rgba(255,55,95,0.10);
+  border-radius: var(--r-lg);
+  padding: 16px;
+}
+.zone-banner-discussion {
+  background: linear-gradient(135deg, rgba(255,55,95,0.10), rgba(255,149,0,0.10));
+}
+.zone-banner-discussion .zone-banner-icon {
+  background: rgba(255,55,95,0.16);
+  color: var(--pink);
+}
+.zone-banner-discussion .zone-banner-title { color: var(--pink); }
+

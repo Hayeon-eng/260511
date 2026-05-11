@@ -1,0 +1,51 @@
+/* =====================================================
+   EXEC CTA — 임원진 보고 만들기 버튼
+   ===================================================== */
+.exec-cta {
+  margin-top: 14px;
+}
+.exec-cta-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+  color: white;
+  border-radius: var(--r-md);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+  box-shadow: 0 4px 16px rgba(0,122,255,0.20);
+}
+.exec-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,122,255,0.28);
+}
+.exec-cta-btn:active { transform: scale(0.99); }
+.exec-cta-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.exec-cta-text {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.exec-cta-text strong {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.exec-cta-text small {
+  font-size: 12px;
+  opacity: 0.85;
+  font-weight: 500;
+}
+.exec-cta-arrow {
+  font-size: 20px;
+  font-weight: 700;
+}
+

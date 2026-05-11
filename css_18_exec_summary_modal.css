@@ -1,0 +1,243 @@
+/* =====================================================
+   EXEC SUMMARY MODAL — 임원 보고용
+   ===================================================== */
+.modal-wide {
+  width: min(820px, calc(100vw - 32px)) !important;
+}
+.exec-loading {
+  text-align: center;
+  padding: 48px 20px;
+}
+.exec-loading .thinking-dots {
+  justify-content: center;
+}
+
+/* 결론 */
+.exec-verdict {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--indigo) 100%);
+  color: white;
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 8px 24px rgba(0,122,255,0.22);
+}
+.exec-verdict-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+.exec-verdict-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+/* 섹션 */
+.exec-section {
+  margin-bottom: 22px;
+}
+.exec-section-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.exec-section-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+.exec-section-title.quick-win-title {
+  color: var(--orange);
+}
+
+/* 핵심 격차 */
+.exec-gaps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.exec-gap {
+  display: flex;
+  gap: 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  border-left: 3px solid var(--red);
+}
+.exec-gap-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--red);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.exec-gap-body { flex: 1; }
+.exec-gap-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.exec-gap-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.exec-gap-evidence {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+}
+
+/* 액션 */
+.exec-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exec-action {
+  display: flex;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 14px;
+  border: 1.5px solid var(--separator);
+  position: relative;
+  transition: all .15s;
+}
+.exec-action.quick-win {
+  background: linear-gradient(135deg, rgba(255,204,0,0.08), rgba(255,149,0,0.05));
+  border-color: var(--orange);
+  box-shadow: 0 4px 14px rgba(255,149,0,0.15);
+}
+.exec-action-badge {
+  position: absolute;
+  top: -10px; left: 14px;
+  background: var(--orange);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  letter-spacing: 0.04em;
+}
+.exec-action-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.exec-action.quick-win .exec-action-num {
+  background: var(--orange);
+}
+.exec-action-body { flex: 1; min-width: 0; }
+.exec-action-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.exec-action-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.exec-meta-item {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.exec-axis-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+.exec-action-metrics {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.exec-metric {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+.exec-metric-label {
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.exec-metric-stars {
+  font-size: 14px;
+  color: var(--orange);
+  letter-spacing: 1px;
+}
+.exec-metric-dots {
+  font-size: 11px;
+  color: var(--indigo);
+  letter-spacing: 1px;
+}
+.exec-action-outcome {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+/* 예상 임팩트 */
+.exec-impact {
+  background: rgba(48,209,88,0.08);
+  border-left: 4px solid var(--green);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+/* 리스크 */
+.exec-risks {
+  margin: 0;
+  padding-left: 20px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 14px 16px 14px 36px;
+}
+.exec-risks li {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}

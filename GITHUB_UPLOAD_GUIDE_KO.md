@@ -1,31 +1,18 @@
-# GitHub 업로드 안내
+# GitHub 업로드 안내 - 폴더 없는 버전
 
-이 버전은 `static/` 폴더를 쓰지 않습니다.
-프로젝트 최상위에 `js/`, `css/` 폴더가 바로 있어야 합니다.
+이 버전은 `css/`, `js/`, `static/` 같은 폴더를 쓰지 않습니다.
+GitHub 웹 업로드에서 폴더가 안 올라가는 경우를 위해 모든 파일을 저장소 맨 바닥(root)에 놓는 버전입니다.
 
-업로드할 때는 이 폴더 안의 전체 내용을 그대로 드래그해서 올리세요.
+## 올리는 방법
 
-필수 구조:
+1. 이 ZIP을 압축 해제합니다.
+2. `aeo_lab_flat_upload` 폴더 안으로 들어갑니다.
+3. 그 안에 보이는 모든 파일을 GitHub 업로드 화면에 한 번에 드래그합니다.
+4. GitHub 저장소 맨 바닥에 `index.html`, `main.py`, `js_00_state.js`, `css_00_root_base.css` 등이 바로 보여야 합니다.
 
-```text
-aeo_lab_root_split/
-  css/
-  js/
-  analyzer.py
-  crawler.py
-  database.py
-  discussion.py
-  Dockerfile
-  export.py
-  file_handler.py
-  gemini_llm.py
-  index.html
-  main.py
-  persona.py
-  README.md
-  render.yaml
-  requirements.txt
-```
+## 주의
 
-기존의 큰 `app.js`, 큰 `style.css`는 이 버전에서는 쓰지 않습니다.
-`index.html`이 `/css/*.css`, `/js/*.js`를 순서대로 직접 불러옵니다.
+- `aeo_lab_flat_upload` 폴더 자체를 저장소 안에 넣지 마세요.
+- ZIP 파일 그대로 올리지 마세요.
+- 기존 큰 `app.js`, 큰 `style.css`는 이 버전에서는 쓰지 않습니다.
+- 브라우저에서는 `/assets/js_...`, `/assets/css_...` 주소로 읽지만, 실제 폴더는 없습니다. `main.py`가 루트 파일만 안전하게 서빙합니다.
