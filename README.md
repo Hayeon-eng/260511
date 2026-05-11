@@ -49,13 +49,14 @@
 3. 이 폴더의 모든 파일을 **드래그&드롭**으로 업로드
 4. **"Commit changes"** 클릭
 
-업로드해야 할 파일들:
+업로드해야 할 파일들 (모두 같은 폴더에, 평평하게):
 ```
 main.py, gemini_llm.py, crawler.py, analyzer.py,
 persona.py, discussion.py, database.py, file_handler.py,
-requirements.txt, render.yaml, Dockerfile, .env.example,
-README.md, static/ (폴더 통째로)
+index.html, requirements.txt, render.yaml, Dockerfile, README.md
 ```
+
+총 13개 파일. 폴더 만들 필요 없이 그냥 13개 다 같이 드래그&드롭 하면 됩니다.
 
 ### 3단계 · Render에 연결 (3분)
 

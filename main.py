@@ -33,7 +33,6 @@ from typing import List, Optional
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import database as db
@@ -56,10 +55,6 @@ app.add_middleware(
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-
-if os.path.isdir(STATIC_DIR):
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # ============== Pydantic 모델 ==============
@@ -99,10 +94,10 @@ class TurnIn(BaseModel):
 # ============== 기본 ==============
 @app.get("/")
 async def home():
-    index = os.path.join(STATIC_DIR, "index.html")
+    index = os.path.join(BASE_DIR, "index.html")
     if os.path.exists(index):
         return FileResponse(index)
-    return JSONResponse({"message": "static/index.html을 찾을 수 없습니다."})
+    return JSONResponse({"message": "index.html을 찾을 수 없습니다."})
 
 
 @app.get("/health")
