@@ -38,7 +38,7 @@ from pydantic import BaseModel
 import database as db
 from crawler import crawl_url
 from analyzer import analyze_content
-from discussion import generate_digest
+from discussion import generate_digest, generate_executive_summary
 from persona import Persona, ALL_DIMENSIONS, DEFAULT_PERSONAS
 from file_handler import extract_pdf_text, load_image
 import export as exporter
@@ -99,6 +99,11 @@ class SessionIn(BaseModel):
 
 class TurnIn(BaseModel):
     persona_name: str
+
+
+class AskIn(BaseModel):
+    question: str
+    persona_names: Optional[List[str]] = None  # None이면 모든 페르소나에게
 
 
 # ============== 기본 ==============
@@ -428,6 +433,105 @@ async def refresh_digest(sid: str):
     round_no = db.current_round(sid, personas_per_round)
     saved = db.add_digest(sid, round_no, digest)
     return {"digest": saved}
+
+
+# ============== 꼬리질문 ==============
+@app.post("/api/sessions/{sid}/ask")
+async def ask_followup(sid: str, body: AskIn):
+    """사용자가 추가 질문 → 지정된 페르소나(들)가 차례로 답함."""
+    if not body.question.strip():
+        raise HTTPException(400, "질문 내용이 비어있습니다")
+
+    s = db.get_session(sid)
+    if not s:
+        raise HTTPException(404, "세션 없음")
+
+    # 대상 페르소나 결정
+    all_personas = s.get("personas", []) or []
+    if body.persona_names:
+        targets = [p for p in all_personas if p.get("name") in body.persona_names]
+    else:
+        targets = all_personas
+    if not targets:
+        raise HTTPException(400, "응답할 페르소나가 없습니다")
+
+    # 컨텍스트
+    context = s.get("crawl", {}).get("text", "") or ""
+    analysis = s.get("analysis", {}) or {}
+    compare = None
+    if s.get("mode") == "compare":
+        a = s.get("side_a", {}) or {}
+        b = s.get("side_b", {}) or {}
+        compare = {
+            "label_a": s.get("label_a") or a.get("label") or "A",
+            "label_b": s.get("label_b") or b.get("label") or "B",
+            "side_a": {
+                "url": a.get("url", ""),
+                "context": (a.get("crawl", {}) or {}).get("text", ""),
+                "analysis": a.get("analysis", {}) or {},
+            },
+            "side_b": {
+                "url": b.get("url", ""),
+                "context": (b.get("crawl", {}) or {}).get("text", ""),
+                "analysis": b.get("analysis", {}) or {},
+            },
+        }
+        if not context:
+            context = compare["side_a"]["context"]
+        if not analysis:
+            analysis = compare["side_a"]["analysis"]
+
+    personas_per_round = max(1, len(all_personas))
+    round_no = db.current_round(sid, personas_per_round)
+
+    # 사용자 질문을 시스템 발언으로 기록
+    user_turn = {
+        "stance": "질문",
+        "target": "",
+        "dimensions": [],
+        "synthesis": body.question.strip()[:200],
+        "persona": "👤 사용자",
+        "color": "#8E8E93",
+        "emoji": "👤",
+        "is_user": True,
+    }
+    saved_user = db.add_turn(sid, round_no, user_turn)
+    answers = [saved_user]
+
+    # 각 페르소나 차례로 응답
+    history = db.list_turns(sid)
+    for p_data in targets:
+        persona = Persona(
+            name=p_data["name"],
+            description=p_data.get("description", ""),
+            personality=p_data.get("personality", ""),
+            expertise=p_data.get("expertise", ""),
+            focus_dimensions=p_data.get("focus_dimensions", []),
+            color=p_data.get("color", "#007AFF"),
+            emoji=p_data.get("emoji", "💬"),
+        )
+        try:
+            turn = persona.respond(s["query"], context, analysis, history,
+                                   compare=compare, user_question=body.question)
+            saved = db.add_turn(sid, round_no, turn)
+            answers.append(saved)
+            history.append(saved)
+        except Exception as e:
+            log.error(f"꼬리질문 응답 실패 ({persona.name}): {e}")
+
+    return {"answers": answers, "round": round_no}
+
+
+# ============== Executive Summary ==============
+@app.post("/api/sessions/{sid}/executive_summary")
+async def make_executive_summary(sid: str):
+    s = db.get_session(sid)
+    if not s:
+        raise HTTPException(404, "세션 없음")
+    s["turns"] = db.list_turns(sid)
+    s["digest"] = db.latest_digest(sid)
+    summary = generate_executive_summary(s)
+    return {"summary": summary}
 
 
 # ============== 업로드 ==============

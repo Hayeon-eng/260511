@@ -117,7 +117,8 @@ class Persona:
 
     def respond(self, query: str, context: str, analysis: Dict[str, Any],
                 history: List[Dict[str, Any]],
-                compare: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                compare: Optional[Dict[str, Any]] = None,
+                user_question: Optional[str] = None) -> Dict[str, Any]:
         recent = history[-10:] if history else []
 
         used_evidence = []
@@ -191,6 +192,24 @@ class Persona:
                 f"- action은 약한 쪽({label_a}/{label_b} 중)을 어떻게 강한 쪽 수준으로 끌어올릴지 구체 제시.\n"
             )
 
+        # 사용자 꼬리질문 컨텍스트
+        user_q_block = ""
+        if user_question:
+            user_q_block = f"""
+
+============================================
+❓ 사용자(임원진/PM)가 추가로 던진 질문
+============================================
+"{user_question}"
+
+위 질문에 직접 답하세요. 다음 원칙을 지키세요:
+- 일반 토론과 동일한 4파트 구조(stance/dimensions/synthesis) 유지
+- stance는 보통 "신규관점" 또는 "보완", target은 ""
+- 질문이 특정 페르소나를 지목했어도 "{self.name}" 페르소나로서 자기 관점으로 답변
+- argument에서 **질문에 직접적으로 답한 뒤** 근거와 논리를 제시
+- action에서 질문자가 바로 가져갈 수 있는 구체적 다음 단계 제시
+"""
+
         prompt = f"""[토론 주제]
 {query}
 
@@ -228,7 +247,7 @@ class Persona:
 - 다른 페르소나와 중복되지 않는 새로운 evidence·관점을 가져오세요.
 - 본인의 주력 축({', '.join(self.focus_dimensions) if self.focus_dimensions else '자유'})을 우선 고려하되, 이미 다뤄진 축이면 다른 축을 선택해도 됩니다.
 - 닉네임 정체성에 맞는 말투·태도를 반드시 드러내세요.
-- argument는 반드시 150자 이상, action은 50자 이상.{compare_instruction}
+- argument는 반드시 150자 이상, action은 50자 이상.{compare_instruction}{user_q_block}
 {RESPONSE_SCHEMA_HINT}
 """
 
