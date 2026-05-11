@@ -44,7 +44,52 @@ def _build_config(system_instruction: Optional[str], temperature: float,
         kwargs["system_instruction"] = system_instruction
     if json_mode:
         kwargs["response_mime_type"] = "application/json"
+    # 안전 필터 최저로 (BLOCK_NONE) — Gemini 2.5가 한국어/짧은 입력을 과차단하는 문제 회피
+    try:
+        kwargs["safety_settings"] = [
+            types.SafetySetting(category=c, threshold="BLOCK_NONE")
+            for c in [
+                "HARM_CATEGORY_HARASSMENT",
+                "HARM_CATEGORY_HATE_SPEECH",
+                "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "HARM_CATEGORY_DANGEROUS_CONTENT",
+            ]
+        ]
+    except Exception:
+        pass
     return types.GenerateContentConfig(**kwargs)
+
+
+def _extract_text(resp) -> str:
+    """resp.text가 비어있어도 candidates에서 텍스트 추출 시도 + finish reason 디버그."""
+    try:
+        txt = (resp.text or "").strip() if hasattr(resp, "text") else ""
+    except Exception:
+        txt = ""
+    if txt:
+        return txt
+    # candidates 깊이 탐색
+    try:
+        cands = getattr(resp, "candidates", None) or []
+        for c in cands:
+            content = getattr(c, "content", None)
+            parts = getattr(content, "parts", None) if content else None
+            if parts:
+                for p in parts:
+                    t = getattr(p, "text", None)
+                    if t:
+                        return t.strip()
+        # 디버그 정보 노출
+        if cands:
+            fr = getattr(cands[0], "finish_reason", None)
+            log.warning(f"Gemini empty text — finish_reason={fr}")
+            return f"(빈 응답: finish_reason={fr})"
+    except Exception as e:
+        log.warning(f"_extract_text 실패: {e}")
+    pf = getattr(resp, "prompt_feedback", None)
+    if pf:
+        return f"(빈 응답: prompt_feedback={pf})"
+    return ""
 
 
 class GeminiLLM:
@@ -64,7 +109,10 @@ class GeminiLLM:
                 contents=prompt,
                 config=cfg,
             )
-            return (resp.text or "").strip()
+            text = _extract_text(resp)
+            if not text:
+                return "(빈 응답)"
+            return text
         except Exception as e:
             log.error(f"Gemini generate 실패 ({self.model_name}): {e}")
             return f"(응답 생성 실패: {e})"
@@ -79,7 +127,10 @@ class GeminiLLM:
                 contents=prompt,
                 config=cfg,
             )
-            text = (resp.text or "").strip()
+            text = _extract_text(resp)
+            if not text or text.startswith("(빈 응답"):
+                log.warning(f"Gemini JSON 빈 응답: {text}")
+                return {}
             return json.loads(text)
         except json.JSONDecodeError:
             # JSON 부분만 추출 재시도
@@ -101,14 +152,14 @@ class GeminiLLM:
                              temperature: float = 0.6, max_tokens: int = 1000) -> str:
         try:
             cfg = _build_config(self.system_instruction, temperature, max_tokens, json_mode=False)
-            # 새 SDK는 PIL Image를 contents 리스트에 그대로 넣을 수 있음
             parts = [prompt] + list(images or [])
             resp = self.client.models.generate_content(
                 model=self.model_name,
                 contents=parts,
                 config=cfg,
             )
-            return (resp.text or "").strip()
+            text = _extract_text(resp)
+            return text or "(빈 응답)"
         except Exception as e:
             log.error(f"Gemini vision 실패 ({self.model_name}): {e}")
             return f"(이미지 분석 실패: {e})"

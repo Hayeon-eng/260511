@@ -147,6 +147,38 @@ async def health_probe():
         return {"ok": False, "error": str(e)}
 
 
+@app.get("/health/probe2")
+async def health_probe2():
+    """실제 페르소나 호출과 동일한 조건으로 진단 (한국어 JSON, 긴 컨텍스트)."""
+    try:
+        from gemini_llm import GeminiLLM
+        llm = GeminiLLM(system_instruction="당신은 한국어로 응답하는 AI 분석가입니다. 항상 JSON으로만 응답합니다.")
+        prompt = """
+다음 분석을 JSON으로 응답하세요.
+
+[데이터]
+- 제목: Apple iPhone 16 Pro
+- URL: https://apple.com/iphone-16-pro
+- AEO 점수: 87/100
+
+JSON 스키마:
+{
+  "summary": "한 줄 요약",
+  "score": 0-100,
+  "reason": "이유"
+}
+"""
+        result = llm.generate_json(prompt, temperature=0.3, max_tokens=500)
+        return {
+            "ok": bool(result),
+            "model": llm.model_name,
+            "result": result,
+            "note": "비어있으면 안전필터 또는 모델 응답 거부일 가능성. 로그 확인 필요."
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e), "type": type(e).__name__}
+
+
 @app.get("/api/config")
 async def get_config():
     return {
