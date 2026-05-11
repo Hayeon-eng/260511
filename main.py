@@ -100,6 +100,18 @@ async def home():
     return JSONResponse({"message": "index.html을 찾을 수 없습니다."})
 
 
+@app.get("/style.css")
+async def css():
+    p = os.path.join(BASE_DIR, "style.css")
+    return FileResponse(p, media_type="text/css") if os.path.exists(p) else JSONResponse({}, 404)
+
+
+@app.get("/app.js")
+async def appjs():
+    p = os.path.join(BASE_DIR, "app.js")
+    return FileResponse(p, media_type="application/javascript") if os.path.exists(p) else JSONResponse({}, 404)
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "gemini": bool(os.getenv("GEMINI_API_KEY"))}
