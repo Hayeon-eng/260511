@@ -36,7 +36,10 @@ async function loadSessions() {
 }
 
 async function seedDefaultsIfEmpty() {
-  if (State.personas.length === 0) {
+  const defaults = (State.config && State.config.default_personas) || [];
+  const currentNames = new Set((State.personas || []).map(p => p.name));
+  const hasMissingDefault = defaults.some(p => !currentNames.has(p.name));
+  if (State.personas.length === 0 || hasMissingDefault) {
     try {
       const r = await fetch('/api/personas/seed_defaults', { method: 'POST' });
       const d = await r.json();

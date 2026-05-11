@@ -204,3 +204,130 @@ function renderAnalysisReliability(session, variant) {
   `;
 }
 
+
+function normalizeBrandFit(analysis) {
+  const fit = (analysis && analysis.brand_fit) || {};
+  const rawScore = Number(fit.score || 0);
+  const components = fit.score_components || {};
+  const personaFit = fit.persona_fit || {};
+  const hasContent = rawScore > 0 || fit.reason || (fit.findings || []).length || (fit.actions || []).length;
+  return {
+    available: fit.status !== 'unavailable' && hasContent,
+    targetBrand: fit.target_brand || 'Unknown',
+    score: clampNumber(Math.round(rawScore), 0, 100),
+    components: {
+      officialIdentity: clampNumber(Math.round(Number(components.official_identity_match || 0)), 0, 15),
+      brandPersona: clampNumber(Math.round(Number(components.brand_persona_fit || personaFit.score || 0)), 0, 70),
+      evidenceClarity: clampNumber(Math.round(Number(components.evidence_clarity || 0)), 0, 15),
+    },
+    personaFit: {
+      score: clampNumber(Math.round(Number(personaFit.score || components.brand_persona_fit || 0)), 0, 70),
+      matched: Array.isArray(personaFit.matched_personas) ? personaFit.matched_personas : [],
+      weak: Array.isArray(personaFit.weak_personas) ? personaFit.weak_personas : [],
+    },
+    reason: fit.reason || '',
+    findings: Array.isArray(fit.findings) ? fit.findings : [],
+    gaps: Array.isArray(fit.gaps) ? fit.gaps : [],
+    actions: Array.isArray(fit.actions) ? fit.actions : [],
+    note: fit.note || '공식 브랜드 아이덴티티와 브랜드 페르소나 기준. 실제 검색량·구매 의향·브랜드 선호도는 미포함',
+  };
+}
+
+function brandFitCriteriaHtml(targetBrand) {
+  const isApple = /apple/i.test(targetBrand || '');
+  const isGalaxy = /galaxy|samsung/i.test(targetBrand || '');
+  const galaxyHtml = `
+    <div class="brand-fit-criteria-block">
+      <strong>Samsung Galaxy 기준</strong>
+      <div>공식 ID: Openness, 사람 중심 혁신, 진취적 혁신, Galaxy 생태계/연결성, 책임 있는 기술</div>
+      <div>페르소나: Open Explorer, Practical Innovator, Connected Multitasker, Creator/Story Sharer, Responsible Tech User</div>
+    </div>
+  `;
+  const appleHtml = `
+    <div class="brand-fit-criteria-block">
+      <strong>Apple 기준</strong>
+      <div>공식 ID: Privacy-first, Empowering tools, Accessibility, Environment, Integrated premium experience</div>
+      <div>페르소나: Privacy-first User, Creative Professional, Effortless Premium Seeker, Accessibility-minded User, Planet-conscious Buyer</div>
+    </div>
+  `;
+  const body = isApple ? appleHtml : (isGalaxy ? galaxyHtml : galaxyHtml + appleHtml);
+  return `
+    <details class="brand-fit-criteria">
+      <summary>브랜드 페르소나 판단 기준 보기</summary>
+      <div class="brand-fit-weight-note">
+        가중치: 공식 브랜드 아이덴티티 15점 · <strong>브랜드 페르소나 70점</strong> · 근거 명확성 15점
+      </div>
+      ${body}
+      <div class="brand-fit-criteria-note">이 점수는 공식 브랜드 기준과 현재 콘텐츠의 메시지 정합성 평가이며, 검색량·구매 의향·실제 선호도는 포함하지 않습니다.</div>
+    </details>
+  `;
+}
+
+function renderBrandFitSingle(analysis, label) {
+  const fit = normalizeBrandFit(analysis);
+  if (!fit.available) {
+    return `
+      <div class="brand-fit-card muted">
+        <div class="brand-fit-head">
+          <div>
+            <div class="brand-fit-label">브랜드 적합도</div>
+            <div class="brand-fit-title">${escapeHTML(label || '분석 대상')}</div>
+          </div>
+          <div class="brand-fit-score empty">--</div>
+        </div>
+        <div class="brand-fit-empty">브랜드 적합도 분석을 생성하지 못했습니다. AEO 점수가 0으로 보이면 토큰/쿼터/API 응답을 먼저 확인하세요.</div>
+        ${brandFitCriteriaHtml(fit.targetBrand)}
+      </div>
+    `;
+  }
+  return `
+    <div class="brand-fit-card">
+      <div class="brand-fit-head">
+        <div>
+          <div class="brand-fit-label">브랜드 적합도</div>
+          <div class="brand-fit-title">${escapeHTML(label || fit.targetBrand || '분석 대상')}</div>
+          ${fit.targetBrand && fit.targetBrand !== 'Unknown' ? `<div class="brand-fit-target">기준 브랜드: ${escapeHTML(fit.targetBrand)}</div>` : ''}
+        </div>
+        <div class="brand-fit-score" style="color:${scoreColorVar(fit.score)}">${fit.score}</div>
+      </div>
+      <div class="brand-fit-components">
+        <span>공식 ID ${fit.components.officialIdentity}/15</span>
+        <span class="strong">페르소나 ${fit.components.brandPersona}/70</span>
+        <span>근거 ${fit.components.evidenceClarity}/15</span>
+      </div>
+      ${fit.reason ? `<div class="brand-fit-reason">${escapeHTML(fit.reason)}</div>` : ''}
+      ${(fit.personaFit.matched || []).length ? `
+        <div class="brand-fit-persona-box">
+          <strong>잘 맞는 브랜드 페르소나</strong>
+          <ul>${fit.personaFit.matched.slice(0, 3).map(x => `<li>${escapeHTML(x)}</li>`).join('')}</ul>
+        </div>
+      ` : ''}
+      ${(fit.findings || []).length ? `
+        <ul class="brand-fit-list">
+          ${fit.findings.slice(0, 3).map(x => `<li>${escapeHTML(x)}</li>`).join('')}
+        </ul>
+      ` : ''}
+      ${(fit.actions || []).length ? `
+        <div class="brand-fit-action"><strong>개선 액션</strong>${escapeHTML(fit.actions[0])}</div>
+      ` : ''}
+      <div class="brand-fit-note">${escapeHTML(fit.note)}</div>
+      ${brandFitCriteriaHtml(fit.targetBrand)}
+    </div>
+  `;
+}
+
+function renderBrandFitSummary(session, variant) {
+  if (!session) return '';
+  const compact = variant === 'compact';
+  if (session.mode === 'compare') {
+    const a = session.side_a || {};
+    const b = session.side_b || {};
+    return `
+      <div class="brand-fit-wrap ${compact ? 'compact' : ''}">
+        ${renderBrandFitSingle(a.analysis || {}, a.label || session.label_a || 'A')}
+        ${renderBrandFitSingle(b.analysis || {}, b.label || session.label_b || 'B')}
+      </div>
+    `;
+  }
+  return `<div class="brand-fit-wrap ${compact ? 'compact' : ''}">${renderBrandFitSingle(session.analysis || {}, '브랜드/메시지 적합도')}</div>`;
+}

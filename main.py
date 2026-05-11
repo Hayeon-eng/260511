@@ -242,14 +242,15 @@ async def delete_persona(pid: str):
 
 @app.post("/api/personas/seed_defaults")
 async def seed_defaults():
-    """DB에 페르소나가 0개일 때 기본 SET 시드. 이미 있으면 건너뜀."""
+    """기본 SET 시드. 이미 있는 페르소나는 유지하고, 새 기본 페르소나만 추가."""
     existing = db.list_personas()
-    if existing:
-        return {"seeded": 0, "personas": existing}
+    existing_names = {p.get("name") for p in existing}
     created = []
     for p in DEFAULT_PERSONAS:
-        created.append(db.create_persona(p))
-    return {"seeded": len(created), "personas": created}
+        if p.get("name") not in existing_names:
+            created.append(db.create_persona(p))
+    personas = db.list_personas()
+    return {"seeded": len(created), "personas": personas}
 
 
 # ============== 세션 ==============

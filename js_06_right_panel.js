@@ -225,9 +225,10 @@ function renderRightPanel() {
   ` : `<div class="rp-empty">토론이 시작되면 여기에<br>축별 합의·충돌·액션이 정리됩니다.</div>`;
 
   const summaryHtml = renderRightPanelSummary(s, digest);
+  const brandFitHtml = renderBrandFitSummary(s, 'compact');
   const reliabilityHtml = renderAnalysisReliability(s, 'compact');
 
-  document.getElementById('rp_content').innerHTML = summaryHtml + sharpHtml + reliabilityHtml + scoreHtml +
+  document.getElementById('rp_content').innerHTML = summaryHtml + brandFitHtml + sharpHtml + reliabilityHtml + scoreHtml +
     (digest ? `<div class="rp-section"><div class="rp-title">축별 디테일</div></div>` : '') +
     digestHtml;
 }

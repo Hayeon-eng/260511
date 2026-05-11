@@ -12,7 +12,7 @@
 | 🛍️ **AI Commerce** | Google Shopping/ChatGPT Shopping/Gemini가 제품을 추천할 때 우리 데이터를 인용할 가능성 |
 | 🎨 **UX** | 정보 구조, 탐색 경로, 가독성 (사람과 AI 모두에게 스캐닝 좋은가) |
 
-## 기본 페르소나 8명
+## 기본 페르소나 9명
 
 | 닉네임 | 축 | 한 줄 소개 |
 |---|---|---|
@@ -24,8 +24,24 @@
 | PriceComparer 🔎 | AI Commerce | "이거 사도 돼?"를 AI에 묻는 현실 소비자 |
 | UXResearcher 🎨 | UX | 사용성 테스트 200회, 스캐닝 패턴 분석가 |
 | SkepticalShopper 🤨 | UX | 첫 화면에서 신뢰 안 가면 닫는 까칠한 소비자 |
+| BrandStrategist 🎯 | 콘텐츠·AI Commerce | 브랜드 메시지, 타깃, 포지셔닝 적합도를 보는 마케팅 전략가 |
 
 물론 본인이 직접 페르소나를 추가/수정/삭제할 수 있습니다.
+
+
+## 브랜드 적합도
+
+브랜드 적합도는 Samsung Galaxy / Apple의 공식 브랜드 아이덴티티와 브랜드 페르소나 기준으로 계산합니다. 검색량 API는 사용하지 않습니다.
+
+점수 가중치:
+
+- 공식 브랜드 아이덴티티 매칭: 15점
+- 브랜드 페르소나 적합도: 70점
+- 근거 명확성: 15점
+
+앱 화면에서는 `브랜드 페르소나 판단 기준 보기`를 접힌 주석 형태로 제공하며, 클릭하면 Samsung Galaxy / Apple 각각의 판단 기준을 확인할 수 있습니다.
+
+주의: 실제 시장 반응, 검색량, 소비자 선호도, 구매 의향은 포함하지 않습니다. 해당 데이터는 Google Search Console, Google Ads Keyword Planner, Naver DataLab 같은 외부 데이터 연동이 필요합니다.
 
 ---
 

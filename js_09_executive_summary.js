@@ -110,6 +110,8 @@ function renderExecutiveSummary(summary) {
 
     ${renderAnalysisReliability(State.currentSession, 'exec')}
 
+    ${renderBrandFitSummary(State.currentSession, 'exec')}
+
     ${quickWinSummaryHtml}
 
     <!-- 핵심 격차 -->

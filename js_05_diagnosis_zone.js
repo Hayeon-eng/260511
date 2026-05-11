@@ -53,6 +53,8 @@ function renderDiagnosisZone(s) {
           </div>
         </div>
 
+        ${renderBrandFitSummary(s, 'diagnosis')}
+
         <!-- 4축 비교 막대 -->
         <div class="diag-axis-bars">
           ${AXES.map(ax => {
@@ -110,6 +112,8 @@ function renderDiagnosisZone(s) {
           ${analysis.consumer_perception ? `<div class="diag-summary-title" style="margin-top:14px">소비자 인식</div><div class="diag-summary-text">${escapeHTML(analysis.consumer_perception)}</div>` : ''}
         </div>
       </div>
+
+      ${renderBrandFitSummary(s, 'diagnosis')}
 
       <div class="diag-axis-grid">
         ${AXES.map(ax => {
