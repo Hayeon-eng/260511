@@ -47,7 +47,7 @@ function renderRightPanelSummary(session, digest) {
           </div>
         ` : `
           <div class="rp-summary-empty">
-            아직 AI 1차 진단 요약이 비어 있습니다.<br>
+            아직 크롤링·입력 데이터 기반 사전 진단 요약이 비어 있습니다.<br>
             양쪽 AEO 점수가 0으로 보이면 분석 응답이 비었거나 JSON 파싱/토큰/키/크롤링 문제일 수 있습니다.
           </div>
         `}
@@ -64,7 +64,7 @@ function renderRightPanelSummary(session, digest) {
         ${analysis.consumer_perception ? `<div class="rp-summary-desc">${escapeHTML(analysis.consumer_perception)}</div>` : ''}
       ` : `
         <div class="rp-summary-empty">
-          아직 AI 1차 진단 요약이 비어 있습니다.<br>
+          아직 크롤링·입력 데이터 기반 사전 진단 요약이 비어 있습니다.<br>
           AEO 점수가 0으로 보이면 분석 응답이 비었거나 JSON 파싱/토큰/키/크롤링 문제일 수 있습니다.
         </div>
       `}
@@ -106,7 +106,7 @@ function renderRightPanel() {
       (d.actions || []).slice(0, 1).forEach(a => sharpActions.push({ax, action: a}));
     }
   }
-  // 다이제스트가 없으면 1차 진단의 actions 활용
+  // 다이제스트가 없으면 사전 진단의 actions 활용
   if (!sharpActions.length && analysis.by_dimension) {
     for (const ax of AXES) {
       const d = analysis.by_dimension[ax] || {};
@@ -119,7 +119,7 @@ function renderRightPanel() {
       <div class="rp-sharp-title">
         <span class="rp-sharp-bolt">⚡</span>
         <span>Sharp Insights</span>
-        <span class="rp-sharp-tag">${digest ? '토론 기반' : '1차 진단 기반'}</span>
+        <span class="rp-sharp-tag">${digest ? '토론 기반' : '사전 진단 기반'}</span>
       </div>
       ${sharpHeadline ? `<div class="rp-sharp-headline">"${escapeHTML(sharpHeadline)}"</div>` : ''}
       ${sharpInsights.length ? `

@@ -1,5 +1,5 @@
 // =========================================
-// AI 1차 진단 영역
+// 크롤링·입력 데이터 기반 사전 진단 영역
 // =========================================
 function renderDiagnosisZone(s) {
   const isCompare = s.mode === 'compare';
@@ -21,8 +21,8 @@ function renderDiagnosisZone(s) {
         <div class="zone-banner zone-banner-diagnosis">
           <div class="zone-banner-icon">📋</div>
           <div class="zone-banner-text">
-            <div class="zone-banner-title">AI 1차 진단 <span class="zone-tag">사전 분석</span></div>
-            <div class="zone-banner-subtitle">토론 시작 전 두 콘텐츠의 객관적 진단 데이터입니다. 페르소나들은 이 진단을 보고 토론합니다.</div>
+            <div class="zone-banner-title">크롤링·입력 데이터 기반 사전 진단 <span class="zone-tag">자동 분석</span></div>
+            <div class="zone-banner-subtitle">입력한 두 콘텐츠에서 수집한 원문·메타데이터·첨부 내용을 먼저 자동 분석한 결과입니다. 페르소나들은 이 근거를 참고해 심화 토론합니다.</div>
           </div>
         </div>
 
@@ -96,8 +96,8 @@ function renderDiagnosisZone(s) {
       <div class="zone-banner zone-banner-diagnosis">
         <div class="zone-banner-icon">📋</div>
         <div class="zone-banner-text">
-          <div class="zone-banner-title">AI 1차 진단 <span class="zone-tag">사전 분석</span></div>
-          <div class="zone-banner-subtitle">토론 시작 전 콘텐츠의 객관적 진단 데이터입니다. 페르소나들은 이 진단을 보고 토론합니다.</div>
+          <div class="zone-banner-title">크롤링·입력 데이터 기반 사전 진단 <span class="zone-tag">자동 분석</span></div>
+          <div class="zone-banner-subtitle">입력한 URL·이미지·카피에서 수집한 원문·메타데이터·첨부 내용을 먼저 자동 분석한 결과입니다. 페르소나들은 이 근거를 참고해 심화 토론합니다.</div>
         </div>
       </div>
 
