@@ -131,6 +131,14 @@ class AskIn(BaseModel):
     persona_names: Optional[List[str]] = None  # None이면 모든 페르소나에게
 
 
+class CopyCompareIn(BaseModel):
+    brand: str = "Samsung Galaxy"
+    product: str = ""
+    query: str = ""
+    copy_a: str = ""
+    copy_b: str = ""
+
+
 # ============== 기본 ==============
 @app.get("/")
 async def home():
@@ -265,6 +273,124 @@ async def seed_defaults():
     personas = db.list_personas()
     return {"seeded": len(created), "updated": updated, "personas": personas}
 
+
+
+# ============== 카피 빠른 비교 ==============
+def _normalize_copy_compare_result(raw: dict) -> dict:
+    """카피 비교 응답을 프론트가 기대하는 형태로 정리."""
+    if not isinstance(raw, dict):
+        raw = {}
+    winner = str(raw.get("winner", "tie") or "tie").upper()
+    if winner not in ("A", "B", "TIE"):
+        winner = "TIE"
+    def _score(v):
+        try:
+            return max(0, min(100, int(v)))
+        except Exception:
+            return 0
+    return {
+        "winner": "tie" if winner == "TIE" else winner,
+        "a_score": _score(raw.get("a_score", 0)),
+        "b_score": _score(raw.get("b_score", 0)),
+        "summary": str(raw.get("summary", "") or "")[:500],
+        "reasons": [str(x)[:300] for x in (raw.get("reasons") or []) if isinstance(x, str)][:5],
+        "a_strengths": [str(x)[:200] for x in (raw.get("a_strengths") or []) if isinstance(x, str)][:4],
+        "b_strengths": [str(x)[:200] for x in (raw.get("b_strengths") or []) if isinstance(x, str)][:4],
+        "recommended_revision": str(raw.get("recommended_revision", "") or "")[:600],
+        "cautions": [str(x)[:250] for x in (raw.get("cautions") or []) if isinstance(x, str)][:4],
+    }
+
+
+@app.post("/api/copy/compare")
+async def compare_copy(body: CopyCompareIn):
+    """내부 A/B 카피 후보를 빠르게 비교한다. 세션은 만들지 않고 팝업 결과만 반환."""
+    brand = (body.brand or "Samsung Galaxy").strip()
+    product = (body.product or "").strip()
+    copy_a = (body.copy_a or "").strip()
+    copy_b = (body.copy_b or "").strip()
+    query = (body.query or "").strip()
+    if not product:
+        raise HTTPException(400, "제품/카테고리를 입력하세요")
+    if not copy_a or not copy_b:
+        raise HTTPException(400, "카피 A와 카피 B를 모두 입력하세요")
+    if brand not in ("Samsung Galaxy", "Apple"):
+        brand = "Samsung Galaxy"
+
+    if brand == "Samsung Galaxy":
+        brand_criteria = """
+Samsung Galaxy 브랜드 페르소나 중심 기준:
+- Open Explorer: 새로운 가능성, 열린 태도, 자기표현, 연결을 중시하는 사용자
+- Practical Innovator: AI, 카메라, 생산성 기능이 실제 생활 문제를 해결하길 기대하는 사용자
+- Connected Multitasker: 여러 Galaxy 기기를 넘나드는 끊김 없는 경험을 원하는 사용자
+- Creator / Story Sharer: 사진, 영상, AI 편집, 공유로 자신의 관점과 여정을 표현하는 사용자
+- Responsible Tech User: 지속가능성, 신뢰, 장기적 가치를 함께 보는 사용자
+공식 아이덴티티 보조 기준: openness, 사람 중심 혁신, 진취적 혁신, Galaxy 생태계, 책임 있는 기술.
+"""
+    else:
+        brand_criteria = """
+Apple 브랜드 페르소나 중심 기준:
+- Privacy-first User: 개인정보 보호, 데이터 통제권, 안전한 AI/개인화 경험을 중시하는 사용자
+- Creative Professional: 창작, 생산성, 콘텐츠 제작, 몰입도 높은 작업 경험을 중시하는 사용자
+- Effortless Premium Seeker: 직관적이고 완성도 높은 프리미엄 경험을 기대하는 사용자
+- Accessibility-minded User: 접근성, 포용성, 사용 편의성을 중요하게 보는 사용자
+- Planet-conscious Buyer: 환경 책임, 오래 쓰는 제품, 재활용 소재, 탄소중립 방향을 고려하는 사용자
+공식 아이덴티티 보조 기준: privacy, empowering tools, accessibility, environment, integrated premium experience.
+"""
+
+    prompt = f"""당신은 브랜드 전략과 AI Commerce 카피라이팅을 함께 보는 심사자입니다.
+당사 내부 A/B 카피 후보를 비교하세요. 경쟁사 비교가 아니라 같은 브랜드/제품 안의 카피라이팅 후보 비교입니다.
+
+[브랜드]
+{brand}
+
+[제품/카테고리]
+{product}
+
+[토론 주제]
+{query or '(없음)'}
+
+[브랜드 기준]
+{brand_criteria}
+
+[평가 가중치]
+- 브랜드 페르소나 적합도: 45%
+- AI Agent 이해/인용 적합도: 25%
+- 메시지 명확성/혜택 직접성: 20%
+- 차별 포인트/기억 용이성: 10%
+
+[카피 A]
+{copy_a[:3000]}
+
+[카피 B]
+{copy_b[:3000]}
+
+다음 JSON으로만 응답하세요.
+{{
+  "winner": "A|B|tie",
+  "a_score": 0-100,
+  "b_score": 0-100,
+  "summary": "추천 결론 한두 문장",
+  "reasons": ["점수 차이를 만든 핵심 이유 3-5개"],
+  "a_strengths": ["카피 A 장점"],
+  "b_strengths": ["카피 B 장점"],
+  "recommended_revision": "선택 카피를 더 좋게 고치는 방향 한 문단",
+  "cautions": ["실제 검색량/전환율/소비자 반응 데이터는 미포함 같은 주의사항"]
+}}
+"""
+    try:
+        from gemini_llm import GeminiLLM
+        llm = GeminiLLM(
+            system_instruction="당신은 한국어로 응답하는 브랜드 전략/AI Commerce 카피 심사자입니다. 항상 JSON으로만 응답합니다."
+        )
+        result = llm.generate_json_debug(prompt, temperature=0.35, max_tokens=1800)
+        if not result.get("ok"):
+            raise HTTPException(502, result.get("error") or "카피 비교 응답 생성 실패")
+        return _normalize_copy_compare_result(result.get("data") or {})
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.error(f"카피 빠른 비교 실패: {e}")
+        raise HTTPException(500, f"카피 빠른 비교 실패: {e}")
 
 # ============== 세션 ==============
 def _fetch_remote_image(image_url: str):

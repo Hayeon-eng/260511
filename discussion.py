@@ -30,8 +30,8 @@ DIGEST_PROMPT = """당신은 컨설팅 회의록 작성 전문가입니다. AEO 
     }},
     "콘텐츠": {{ "consensus": [], "conflicts": [], "actions": [] }},
     "AI Commerce": {{ "consensus": [], "conflicts": [], "actions": [] }},
-    "UX": { "consensus": [], "conflicts": [], "actions": [] },
-    "브랜드 메시지 적합도": { "consensus": [], "conflicts": [], "actions": [] }
+    "UX": {{ "consensus": [], "conflicts": [], "actions": [] }},
+    "브랜드 메시지 적합도": {{ "consensus": [], "conflicts": [], "actions": [] }}
   }},
   "top_insights": ["축을 가로지르는 통합 인사이트 (최대 3개)"],
   "next_questions": ["다음 라운드에서 다뤘으면 하는 질문 (최대 3개)"]
