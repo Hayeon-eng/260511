@@ -94,7 +94,6 @@ def crawl_url(url: str, timeout: int = 10) -> Dict[str, Any]:
 
         # --- 6. 구조화 데이터 (JSON-LD / Microdata / RDFa) ---
         schemas = _extract_schemas(html, base_url)
-        schema_types = _schema_types(schemas)
 
         # --- 7. YouTube 자막 + 메타데이터 ---
         is_youtube = "youtube.com" in url or "youtu.be" in url
@@ -112,15 +111,10 @@ def crawl_url(url: str, timeout: int = 10) -> Dict[str, Any]:
             "has_h1": bool(headings["h1"]),
             "has_og": bool(og),
             "has_schema": bool(schemas),
-            "schema_types": schema_types[:30],
-            "has_faq_schema": _has_schema_type(schema_types, "FAQPage") or _has_schema_type(schema_types, "Question"),
-            "has_product_schema": _has_schema_type(schema_types, "Product"),
-            "has_offer_schema": _has_schema_type(schema_types, "Offer") or _has_schema_type(schema_types, "AggregateOffer"),
-            "has_review_schema": _has_schema_type(schema_types, "Review"),
-            "has_aggregate_rating_schema": _has_schema_type(schema_types, "AggregateRating") or _has_schema_type(schema_types, "Rating"),
-            "has_video_schema": _has_schema_type(schema_types, "VideoObject"),
-            "has_article_schema": _has_schema_type(schema_types, "Article") or _has_schema_type(schema_types, "NewsArticle") or _has_schema_type(schema_types, "BlogPosting"),
-            "has_howto_schema": _has_schema_type(schema_types, "HowTo"),
+            "has_faq_schema": any(
+                (s.get("@type") == "FAQPage" or s.get("@type") == "Question")
+                for s in schemas
+            ),
             "image_alt_coverage": (
                 round((len(images) - len(images_no_alt)) / len(images) * 100, 1)
                 if images else 0.0
@@ -185,63 +179,6 @@ def _extract_twitter(soup: BeautifulSoup) -> Dict[str, str]:
         if key and val:
             t[key] = val
     return t
-
-
-
-def _as_list(value: Any) -> List[Any]:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        return value
-    return [value]
-
-
-def _norm_schema_type(value: Any) -> List[str]:
-    out: List[str] = []
-    for item in _as_list(value):
-        if item in (None, ""):
-            continue
-        text = str(item).strip()
-        if not text:
-            continue
-        out.append(text)
-        if "/" in text or "#" in text:
-            out.append(re.split(r"[/#]", text)[-1])
-    return out
-
-
-def _walk_schema_nodes(value: Any) -> List[Dict[str, Any]]:
-    nodes: List[Dict[str, Any]] = []
-    if isinstance(value, dict):
-        nodes.append(value)
-        for key, child in value.items():
-            if key == "@context":
-                continue
-            if isinstance(child, (dict, list)):
-                nodes.extend(_walk_schema_nodes(child))
-    elif isinstance(value, list):
-        for child in value:
-            nodes.extend(_walk_schema_nodes(child))
-    return nodes
-
-
-def _schema_types(schemas: List[Dict[str, Any]]) -> List[str]:
-    types: List[str] = []
-    for node in _walk_schema_nodes(schemas):
-        types.extend(_norm_schema_type(node.get("@type") or node.get("type")))
-    seen = set()
-    uniq: List[str] = []
-    for t in types:
-        key = t.lower()
-        if key not in seen:
-            seen.add(key)
-            uniq.append(t)
-    return uniq
-
-
-def _has_schema_type(schema_types: List[str], name: str) -> bool:
-    needle = name.lower()
-    return any(needle == str(t).lower() for t in schema_types or [])
 
 
 def _extract_schemas(html: str, base_url: str) -> List[Dict[str, Any]]:
