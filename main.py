@@ -29,6 +29,7 @@ import re
 import io
 import logging
 import uuid
+import requests
 from urllib.parse import quote
 from typing import List, Optional
 
@@ -102,14 +103,18 @@ class PersonaPatch(BaseModel):
 class SideIn(BaseModel):
     label: str = ""
     url: str = ""
+    copy_text: str = ""
     attachment_ids: List[str] = []
+    image_urls: List[str] = []
 
 
 class SessionIn(BaseModel):
     query: str
     url: str = ""
+    copy_text: str = ""
     personas: List[dict]
     attachment_ids: List[str] = []
+    image_urls: List[str] = []
     title: str = ""
     max_rounds: int = 1
     mode: str = "single"  # 'single' | 'compare'
@@ -262,16 +267,69 @@ async def seed_defaults():
 
 
 # ============== 세션 ==============
-def _gather_side(url: str, attachment_ids: List[str], sid: str):
-    """URL+첨부파일 → (crawl, analysis) 결과 반환."""
+def _fetch_remote_image(image_url: str):
+    """외부 이미지 URL을 내려받아 Gemini Vision에 전달할 PIL Image로 변환."""
+    try:
+        r = requests.get(image_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=12)
+        r.raise_for_status()
+        content_type = r.headers.get("content-type", "")
+        if "image" not in content_type.lower():
+            log.warning(f"이미지 URL이 image content-type이 아님: {image_url} ({content_type})")
+        if len(r.content) > 8 * 1024 * 1024:
+            log.warning(f"이미지 URL 용량 초과로 건너뜀: {image_url}")
+            return None
+        img, meta = load_image(r.content)
+        if not img:
+            log.warning(f"원격 이미지 로드 실패: {image_url} / {meta}")
+        return img
+    except Exception as e:
+        log.warning(f"원격 이미지 다운로드 실패: {image_url} / {e}")
+        return None
+
+
+def _gather_side(url: str, attachment_ids: List[str], sid: str, copy_text: str = "", image_urls: List[str] = None):
+    """URL+첨부파일+직접 입력 카피+이미지 URL → (crawl, analysis) 결과 반환."""
+    copy_text = (copy_text or "").strip()
+    image_urls = image_urls or []
     crawl = {}
     if url:
         crawl = crawl_url(url)
+    elif copy_text:
+        crawl = {
+            "ok": True,
+            "url": "",
+            "type": "copy_text",
+            "title": "직접 입력 카피 문구",
+            "meta_description": "",
+            "meta_keywords": "",
+            "og": {},
+            "twitter": {},
+            "headings": {"h1": ["직접 입력 카피"], "h2": [], "h3": []},
+            "text": copy_text[:6000],
+            "images": [],
+            "images_missing_alt": 0,
+            "schemas": [],
+            "aeo_checks": {
+                "has_title": True,
+                "has_meta_desc": False,
+                "has_h1": True,
+                "has_og": False,
+                "has_schema": False,
+                "has_faq_schema": False,
+                "image_alt_coverage": 0.0,
+                "body_length": len(copy_text[:6000]),
+                "is_direct_copy_text": True,
+            },
+        }
     else:
-        crawl = {"ok": True, "url": "", "text": "", "title": "", "images": [],
-                 "schemas": [], "aeo_checks": {}}
+        crawl = {"ok": True, "url": "", "text": "",
+                 "title": "KV 이미지 프리셋" if image_urls else "",
+                 "images": [{"src": u, "alt": "KV 이미지 프리셋"} for u in image_urls],
+                 "schemas": [], "aeo_checks": {"has_title": bool(image_urls), "body_length": 0}}
 
     extra_texts: List[str] = []
+    if copy_text and url:
+        extra_texts.append(f"[직접 입력 카피 문구]\n{copy_text[:6000]}")
     extra_images = []
     for aid in attachment_ids or []:
         att = db.get_attachment(aid)
@@ -289,6 +347,19 @@ def _gather_side(url: str, attachment_ids: List[str], sid: str):
                     if img:
                         extra_images.append(img)
 
+    if image_urls:
+        safe_urls = []
+        for image_url in image_urls[:4]:
+            image_url = (image_url or "").strip()
+            if not image_url.startswith(("http://", "https://")):
+                continue
+            safe_urls.append(image_url)
+            img = _fetch_remote_image(image_url)
+            if img:
+                extra_images.append(img)
+        if safe_urls:
+            extra_texts.append("[KV 이미지 프리셋 URL]\n" + "\n".join(safe_urls))
+
     analysis = analyze_content(crawl, extra_texts=extra_texts, extra_images=extra_images)
     return crawl, analysis
 
@@ -300,14 +371,14 @@ async def create_session(body: SessionIn):
     mode = body.mode if body.mode in ("single", "compare") else "single"
 
     if mode == "single":
-        if not body.url and not body.attachment_ids:
-            raise HTTPException(400, "URL 또는 첨부파일 중 최소 1개 필요")
+        if not body.url and not body.attachment_ids and not body.copy_text.strip() and not body.image_urls:
+            raise HTTPException(400, "URL, 첨부파일, 카피 문구, KV 이미지 중 최소 1개 필요")
     else:  # compare
         if not body.side_a or not body.side_b:
             raise HTTPException(400, "비교 모드는 side_a, side_b 둘 다 필요")
         a, b = body.side_a, body.side_b
-        if (not a.url and not a.attachment_ids) or (not b.url and not b.attachment_ids):
-            raise HTTPException(400, "양쪽 모두 URL 또는 첨부파일 필요")
+        if (not a.url and not a.attachment_ids and not a.copy_text.strip() and not a.image_urls) or (not b.url and not b.attachment_ids and not b.copy_text.strip() and not b.image_urls):
+            raise HTTPException(400, "양쪽 모두 URL, 첨부파일, 카피 문구, KV 이미지 중 최소 1개 필요")
 
     # 세션 레코드
     sid = db.create_session(
@@ -322,7 +393,7 @@ async def create_session(body: SessionIn):
     )
 
     if mode == "single":
-        crawl, analysis = _gather_side(body.url, body.attachment_ids, sid)
+        crawl, analysis = _gather_side(body.url, body.attachment_ids, sid, body.copy_text, body.image_urls)
         db.update_session_analysis(sid, crawl, analysis)
         return {
             "session_id": sid,
@@ -337,17 +408,21 @@ async def create_session(body: SessionIn):
         }
 
     # compare
-    a_crawl, a_analysis = _gather_side(body.side_a.url, body.side_a.attachment_ids, sid)
-    b_crawl, b_analysis = _gather_side(body.side_b.url, body.side_b.attachment_ids, sid)
+    a_crawl, a_analysis = _gather_side(body.side_a.url, body.side_a.attachment_ids, sid, body.side_a.copy_text, body.side_a.image_urls)
+    b_crawl, b_analysis = _gather_side(body.side_b.url, body.side_b.attachment_ids, sid, body.side_b.copy_text, body.side_b.image_urls)
     side_a = {
         "label": body.side_a.label or "A",
         "url": body.side_a.url,
+        "copy_text": body.side_a.copy_text,
+        "image_urls": body.side_a.image_urls,
         "crawl": a_crawl,
         "analysis": a_analysis,
     }
     side_b = {
         "label": body.side_b.label or "B",
         "url": body.side_b.url,
+        "copy_text": body.side_b.copy_text,
+        "image_urls": body.side_b.image_urls,
         "crawl": b_crawl,
         "analysis": b_analysis,
     }

@@ -224,3 +224,84 @@
 }
 .detail-value { font-size: 13px; flex: 1; }
 
+
+/* ============== Session preset chips ============== */
+.preset-box {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--separator);
+}
+.preset-box.compact {
+  padding: 8px 10px;
+  margin-top: 8px;
+}
+.preset-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.preset-chip {
+  padding: 5px 10px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  border: 1px solid var(--separator);
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .12s;
+}
+.preset-chip:hover {
+  background: var(--tint-soft);
+  color: var(--tint);
+  border-color: var(--tint);
+}
+.copy-textarea {
+  min-height: 92px;
+}
+
+/* ============== Preset Chips ============== */
+.preset-group {
+  margin-top: 8px;
+}
+.preset-group.compact {
+  margin-top: 6px;
+}
+.preset-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  margin-bottom: 5px;
+  letter-spacing: 0.02em;
+}
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.preset-chip {
+  padding: 5px 10px;
+  border-radius: var(--r-full);
+  background: var(--tint-soft);
+  color: var(--tint);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid rgba(0,122,255,0.14);
+  transition: all .12s;
+}
+.preset-chip:hover {
+  background: rgba(0,122,255,0.16);
+}
+.visual-preset-list {
+  margin-top: 8px;
+}
