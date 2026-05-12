@@ -319,3 +319,20 @@ def _empty(reason: str = "") -> Dict[str, Any]:
         },
         "technical_checks": {},
     }
+def _nonempty(items: List[str]) -> List[str]:
+    return [x for x in items if x]
+
+
+def _append_reason(a: str, b: str) -> str:
+    if not a:
+        return b
+    if not b:
+        return a
+    return f"{a} / {b}"
+
+
+def _clamp(v: Any) -> int:
+    try:
+        return max(0, min(100, int(round(float(v)))))
+    except Exception:
+        return 0
